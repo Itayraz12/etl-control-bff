@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: rest-api-service
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+
