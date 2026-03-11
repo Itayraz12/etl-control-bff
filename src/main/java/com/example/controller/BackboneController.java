@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/backbone")
 @Tag(name = "Backbone Service", description = "Backbone service operations")
@@ -19,6 +21,11 @@ public class BackboneController {
     @Operation(summary = "Get entity by ID")
     public Entity getEntity(@PathVariable String id) {
         return backboneService.getEntity(id);
+    }
+    @GetMapping("/entities")
+    @Operation(summary = "Get all entity list")
+    public List<Entity> getEntity() {
+        return backboneService.getEntity();
     }
 }
 

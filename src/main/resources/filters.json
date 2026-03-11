@@ -1,0 +1,15 @@
+[
+  {
+    "id": "f-1",
+    "name": "Filter 1",
+    "rule": "severity >= warning",
+    "isInclude": true
+  },
+  {
+    "id": "f-2",
+    "name": "Filter 2",
+    "rule": "source == legacy-system",
+    "isInclude": false
+  }
+]
+

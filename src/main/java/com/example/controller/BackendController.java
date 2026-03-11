@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,5 +52,19 @@ public class BackendController {
         logger.debug("Response details: {}", response);
         return response;
     }
-}
 
+    @PostMapping(value = "/configuration/yaml", consumes = {"text/plain", "application/x-yaml", "application/yaml"})
+    @Operation(summary = "Save configuration from YAML")
+    public Configuration saveConfigurationYaml(@RequestBody String configurationYaml) {
+        logger.info("Request arrived - POST /api/backend/configuration/yaml");
+        try {
+            Configuration response = backendService.saveConfigurationYaml(configurationYaml);
+            logger.info("Response payload: {}", response);
+            return response;
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
+}

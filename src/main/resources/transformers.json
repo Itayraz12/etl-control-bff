@@ -1,0 +1,42 @@
+[
+  {
+    "_id": "00000000-0000-0000-0000-000000000001",
+    "name": "ToTimestamp",
+    "description": "convert TZ",
+    "format": "string",
+    "canonize": false,
+    "isMultipleInput": false,
+    "additionalProperties": {
+      "_required": ["format", "zone"],
+      "format": "dd/MM/yyyy",
+      "zone": "Asia/Jerusalem",
+      "output_format": "yyyy-MM-dd'T'HH:mm:ss"
+    }
+  },
+  {
+    "_id": "00000000-0000-0000-0000-000000000002",
+    "name": "ConvertMulti",
+    "description": "convert multi fileds",
+    "format": "json",
+    "canonize": false,
+    "isMultipleInput": true,
+    "additionalProperties": {
+      "_required": ["logic"],
+      "logic": "a:b:c?120|c:d:e?130",
+      "defaultValue": "0",
+      "case_sensitive": "true"
+    }
+  },
+  {
+    "_id": "00000000-0000-0000-0000-000000000003",
+    "name": "AddString",
+    "description": "Adds a configured string at a selected position",
+    "format": "json",
+    "canonize": false,
+    "isMultipleInput": false,
+    "additionalProperties": {
+      "add_value": "string",
+      "position": "PREFIX"
+    }
+  }
+]

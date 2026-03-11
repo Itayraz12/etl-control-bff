@@ -16,3 +16,5 @@ springdoc:
     path: /v3/api-docs
   show-actuator: true
 
+app:
+  config-storage-dir: saved-configurations
