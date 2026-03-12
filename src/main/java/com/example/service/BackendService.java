@@ -1,14 +1,13 @@
 package com.example.service;
 
-import com.example.model.Configuration;
 import com.example.model.Deployment;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,12 +20,10 @@ import java.util.Map;
 public class BackendService {
 
     private final Map<String, List<Deployment>> teamDeployments;
-    private final ObjectMapper yamlMapper;
     private final Path configStorageDir;
 
-    public BackendService(@Value("${app.config-storage-dir:saved-configurations}") String configStorageDir) {
+    public BackendService(@Value("${app.config-storage-dir:src/main/resources/deploymentConfig}") String configStorageDir) {
         this.teamDeployments = initializeTeamDeployments();
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
         this.configStorageDir = Paths.get(configStorageDir);
     }
 
@@ -77,43 +74,53 @@ public class BackendService {
         return teams;
     }
 
-    public Configuration saveConfiguration(Configuration config) {
-        config.setId("config-" + System.currentTimeMillis());
-        return config;
+    public String getConfigurationYaml(String productType, String source, String team, String environment) {
+        String fileName = String.format("%s_%s_%s_%s.yml",
+            sanitize(productType), sanitize(source), sanitize(team), sanitize(environment));
+        Path targetPath = configStorageDir.resolve(fileName);
+        if (!Files.exists(targetPath)) {
+            throw new IllegalArgumentException("Configuration file not found: " + fileName);
+        }
+        try {
+            return Files.readString(targetPath);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to read configuration file: " + fileName, ex);
+        }
     }
 
-    public Configuration getConfiguration(String id) {
-        return new Configuration(id, "Sample Config", "key=value");
-    }
-
-    public Configuration saveConfigurationYaml(String configurationYaml) {
+    public void saveConfigurationYaml(String productType, String source, String team, String environment, String configurationYaml) {
         if (configurationYaml == null || configurationYaml.isBlank()) {
             throw new IllegalArgumentException("Configuration YAML must not be empty");
         }
 
-        final Configuration parsedConfiguration;
-        try {
-            parsedConfiguration = yamlMapper.readValue(configurationYaml, Configuration.class);
-        } catch (JsonProcessingException ex) {
-            throw new IllegalArgumentException("Invalid configuration YAML", ex);
-        }
-
-        parsedConfiguration.setId("config-" + System.currentTimeMillis());
+        String fileName = String.format("%s_%s_%s_%s.yml",
+            sanitize(productType), sanitize(source), sanitize(team), sanitize(environment));
 
         try {
             Files.createDirectories(configStorageDir);
-            Path targetPath = configStorageDir.resolve(parsedConfiguration.getId() + ".yml");
-            yamlMapper.writeValue(targetPath.toFile(), parsedConfiguration);
+            Path targetPath = configStorageDir.resolve(fileName);
+            Files.writeString(targetPath, configurationYaml);
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to save configuration file", ex);
         }
+    }
 
-        return parsedConfiguration;
+    private String sanitize(String value) {
+        return value.trim().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+    }
+
+    public String getSchemaFromPayload(String payload) {
+        try {
+            ClassPathResource resource = new ClassPathResource("schema.json");
+            try (InputStream is = resource.getInputStream()) {
+                return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            }
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to read schema.json", ex);
+        }
     }
 
     public List<Deployment> getDeployments(String teamName) {
-        if (teamName== null || teamName.isEmpty())
-            teamName="Team B";
         return teamDeployments.getOrDefault(teamName, new ArrayList<>());
     }
 }

@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ETL Pipeline Configuration Schema",
+  "type": "object",
+  "required": ["metadata", "source", "mappings", "sink"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["id", "entity", "product_source", "product_type", "environment", "team"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the ETL pipeline"
+        },
+        "entity": {
+          "type": "string",
+          "description": "The entity this pipeline processes (e.g. Order, Product)"
+        },
+        "product_source": {
+          "type": "string",
+          "description": "Source code repository (e.g. GitHub, Bitbucket, GitLab)"
+        },
+        "product_type": {
+          "type": "string",
+          "description": "Type of product (e.g. ETL Job, Data Pipeline, Analytics)"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["development", "staging", "production"],
+          "description": "Deployment environment"
+        },
+        "team": {
+          "type": "string",
+          "description": "The team responsible for this pipeline"
+        },
+        "data_stream_info": {
+          "type": "object",
+          "properties": {
+            "streaming_continuity": {
+              "type": "string",
+              "enum": ["continuous", "batch"],
+              "description": "Whether the stream is continuous or batch"
+            },
+            "avg_records_amount": {
+              "type": "string",
+              "enum": ["hundreds", "thousands", "millions", "billions"],
+              "description": "Average number of records processed"
+            }
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["type", "format"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["kafka", "database", "s3", "api"],
+          "description": "Type of the data source"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["JSON", "AVRO", "CSV", "XML", "PARQUET"],
+          "description": "Data format of the source"
+        },
+        "topic": {
+          "type": "string",
+          "description": "Kafka topic name (applicable when type is kafka)"
+        },
+        "table": {
+          "type": "string",
+          "description": "Database table name (applicable when type is database)"
+        },
+        "path": {
+          "type": "string",
+          "description": "S3 path or API endpoint"
+        }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "description": "Field mappings from source to target",
+      "items": {
+        "type": "object",
+        "required": ["src", "tgt"],
+        "properties": {
+          "src": {
+            "type": "string",
+            "description": "Source field name"
+          },
+          "tgt": {
+            "type": "string",
+            "description": "Target field name"
+          },
+          "additional_inputs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Additional input fields used in mapping"
+          }
+        }
+      }
+    },
+    "transformations": {
+      "type": "array",
+      "description": "List of transformation expressions to apply",
+      "items": {
+        "type": "string",
+        "description": "Transformation expression string"
+      }
+    },
+    "sink": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["kafka", "database", "s3", "api"],
+          "description": "Type of the data sink"
+        },
+        "topic": {
+          "type": "string",
+          "description": "Kafka topic name (applicable when type is kafka)"
+        },
+        "table": {
+          "type": "string",
+          "description": "Database table name (applicable when type is database)"
+        },
+        "path": {
+          "type": "string",
+          "description": "S3 path or API endpoint"
+        }
+      }
+    }
+  }
+}
+
