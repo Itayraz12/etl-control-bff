@@ -9,11 +9,13 @@ public class Deployment {
     private String deployedVersion;
     private Long lastStatusChange;
     private Long createdAt;
+    private String environment;
 
     public Deployment() {}
 
     public Deployment(String id, String productType, String productSource, String deploymentStatus,
-                      String savedVersion, String deployedVersion, Long lastStatusChange, Long createdAt) {
+                      String savedVersion, String deployedVersion, Long lastStatusChange, Long createdAt,
+                      String environment) {
         this.id = id;
         this.productType = productType;
         this.productSource = productSource;
@@ -22,6 +24,7 @@ public class Deployment {
         this.deployedVersion = deployedVersion;
         this.lastStatusChange = lastStatusChange;
         this.createdAt = createdAt;
+        this.environment = environment;
     }
 
     public String getId() { return id; }
@@ -48,6 +51,9 @@ public class Deployment {
     public Long getCreatedAt() { return createdAt; }
     public void setCreatedAt(Long createdAt) { this.createdAt = createdAt; }
 
+    public String getEnvironment() { return environment; }
+    public void setEnvironment(String environment) { this.environment = environment; }
+
     @Override
     public String toString() {
         return "Deployment{" +
@@ -59,6 +65,7 @@ public class Deployment {
                 ", deployedVersion='" + deployedVersion + '\'' +
                 ", lastStatusChange=" + lastStatusChange +
                 ", createdAt=" + createdAt +
+                ", environment='" + environment + '\'' +
                 '}';
     }
 }
