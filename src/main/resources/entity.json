@@ -1,20 +1,20 @@
 [
   {
     "id": "ent-1",
-    "name": "CustomerEntity",
-    "type": "Customer",
+    "name": "personFlat",
+    "type": "personFlat",
     "description": "Represents a customer profile"
   },
   {
     "id": "ent-2",
-    "name": "OrderEntity",
-    "type": "Order",
+    "name": "personArray",
+    "type": "personArray",
     "description": "Represents an order aggregate"
   },
   {
     "id": "ent-3",
-    "name": "ProductEntity",
-    "type": "Product",
+    "name": "personObject",
+    "type": "personObject",
     "description": "Represents a catalog product"
   }
 ]

@@ -110,13 +110,35 @@ public class BackendService {
     }
 
     public String getSchemaFromPayload(String payload) {
+        String fileName = switch (payload) {
+            case "personArray" -> "personSchemaArray.json";
+            case "personObject" -> "schema.json";
+            default -> "personSchemaFlat.json";
+        };
         try {
-            ClassPathResource resource = new ClassPathResource("schema.json");
+            ClassPathResource resource = new ClassPathResource(fileName);
             try (InputStream is = resource.getInputStream()) {
                 return new String(is.readAllBytes(), StandardCharsets.UTF_8);
             }
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to read schema.json", ex);
+        }
+    }
+
+    public String getSchemaByName(String name) {
+        String fileName = switch (name) {
+            case "personArray" -> "personSchemaArray.json";
+            case "personObject" -> "schema.json";
+            default -> "personSchemaFlat.json";
+        };
+        ClassPathResource resource = new ClassPathResource(fileName);
+        if (!resource.exists()) {
+            throw new IllegalArgumentException("Schema file not found: " + fileName);
+        }
+        try (InputStream is = resource.getInputStream()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to read schema file: " + fileName, ex);
         }
     }
 

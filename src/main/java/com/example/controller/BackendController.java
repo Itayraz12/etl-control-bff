@@ -74,10 +74,25 @@ public class BackendController {
         }
     }
 
-    @PostMapping(value = "/schema", consumes = {"text/plain", "application/json", "application/x-yaml", "application/octet-stream"})
+    @GetMapping(value = "/schema/entity/{entityName}", produces = {"application/json"})
+    @Operation(summary = "Get schema by entity name - reads <entityName>.json from classpath and returns it")
+    public ResponseEntity<String> getSchemaByEntityName(@PathVariable String entityName) {
+        logger.info("Request arrived - GET /api/backend/schema/entity/{}", entityName);
+        try {
+            String schema = backendService.getSchemaByName(entityName);
+            logger.info("Response payload: schema '{}' returned ({} chars)", entityName, schema.length());
+            return ResponseEntity.ok(schema);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
+
+    @PostMapping(value = "/schemaByExample", consumes = {"text/plain", "application/json", "application/x-yaml", "application/octet-stream"})
     @Operation(summary = "Get schema from payload - reads schema.json and returns it")
     public ResponseEntity<String> getSchemaFromPayload(@RequestBody String payload) {
-        logger.info("Request arrived - POST /api/backend/schema");
+        logger.info("Request arrived - POST /api/backend/schemaByExample");
         try {
             String schema = backendService.getSchemaFromPayload(payload);
             logger.info("Response payload: schema returned ({} chars)", schema.length());
