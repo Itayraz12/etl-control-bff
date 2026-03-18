@@ -28,6 +28,23 @@ public class BackendController {
     @Autowired
     private ConfigService configService;
 
+    @GetMapping("/kafka/test-connection")
+    @Operation(summary = "Test Kafka connection by topic name and environment")
+    public ResponseEntity<String> testKafkaConnection(
+            @RequestParam String topicName,
+            @RequestParam String environment) {
+        logger.info("Request arrived - GET /api/backend/kafka/test-connection [topicName={}, environment={}]",
+            topicName, environment);
+        try {
+            String response = backendService.testKafkaConnection(topicName, environment);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("error: " + ex.getMessage());
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.internalServerError().body("error: " + ex.getMessage());
+        }
+    }
+
     @GetMapping("/teamNames")
     @Operation(summary = "Get supported team names - reads teamNams.txt from classpath")
     public List<String> getTeamNames() {

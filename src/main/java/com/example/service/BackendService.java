@@ -74,6 +74,18 @@ public class BackendService {
         return teams;
     }
 
+    public String testKafkaConnection(String topicName, String environment) {
+        validateRequired("topicName", topicName);
+        validateRequired("environment", environment);
+        return "success";
+    }
+
+    private void validateRequired(String fieldName, String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be empty");
+        }
+    }
+
     public String getConfigurationYaml(String productType, String source, String team, String environment) {
         String fileName = String.format("%s_%s_%s_%s.yml",
             sanitize(productType), sanitize(source), sanitize(team), sanitize(environment));
@@ -146,4 +158,3 @@ public class BackendService {
         return teamDeployments.getOrDefault(teamName, new ArrayList<>());
     }
 }
-
