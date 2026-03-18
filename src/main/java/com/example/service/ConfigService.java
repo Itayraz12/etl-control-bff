@@ -7,8 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -28,6 +31,10 @@ public class ConfigService {
         return readListFromResource("filters.json", new TypeReference<>() {});
     }
 
+    public List<String> getTeamNames() {
+        return readLinesFromResource("teamNams.txt");
+    }
+
     private <T> List<T> readListFromResource(String resourceName, TypeReference<List<T>> typeReference) {
         try (InputStream inputStream = new ClassPathResource(resourceName).getInputStream()) {
             return objectMapper.readValue(inputStream, typeReference);
@@ -36,5 +43,15 @@ public class ConfigService {
         }
     }
 
-
+    private List<String> readLinesFromResource(String resourceName) {
+        try (InputStream inputStream = new ClassPathResource(resourceName).getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            return reader.lines()
+                    .map(String::trim)
+                    .filter(line -> !line.isBlank())
+                    .toList();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read config file: " + resourceName, e);
+        }
+    }
 }

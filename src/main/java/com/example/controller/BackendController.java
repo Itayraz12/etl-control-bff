@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.model.Deployment;
 import com.example.service.BackendService;
+import com.example.service.ConfigService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -23,6 +24,22 @@ public class BackendController {
 
     @Autowired
     private BackendService backendService;
+
+    @Autowired
+    private ConfigService configService;
+
+    @GetMapping("/teamNames")
+    @Operation(summary = "Get supported team names - reads teamNams.txt from classpath")
+    public List<String> getTeamNames() {
+        logger.info("Request arrived - GET /api/backend/teamNames");
+        try {
+            List<String> teams = configService.getTeamNames();
+            logger.info("Response payload: {} team names returned", teams.size());
+            return teams;
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
 
     @GetMapping("/deployments")
     @Operation(summary = "Get deployments by team name")
