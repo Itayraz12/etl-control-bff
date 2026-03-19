@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/flat-person.schema.json",
-  "title": "Flat Person with Address Fields",
+  "title": "Flat-Person-with-Address-Fields",
   "type": "object",
   "properties": {
     "firstName": {
