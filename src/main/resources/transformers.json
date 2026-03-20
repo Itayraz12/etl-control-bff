@@ -5,7 +5,7 @@
     "description": "convert TZ",
     "format": "string",
     "canonize": false,
-    "isMultipleInput": false,
+    "inputType": "SINGLE",
     "additionalProperties": {
       "_required": ["format", "zone"],
       "format": "dd/MM/yyyy",
@@ -19,7 +19,7 @@
     "description": "convert multi fileds",
     "format": "json",
     "canonize": false,
-    "isMultipleInput": true,
+    "inputType": "MULTI",
     "additionalProperties": {
       "_required": ["logic"],
       "logic": "a:b:c?120|c:d:e?130",
@@ -33,7 +33,7 @@
     "description": "Adds a configured string at a selected position",
     "format": "json",
     "canonize": false,
-    "isMultipleInput": false,
+    "inputType": "SINGLE",
     "additionalProperties": {
       "add_value": "string",
       "position": "PREFIX"
@@ -45,7 +45,7 @@
     "description": "Lower case",
     "format": "json",
     "canonize": false,
-    "isMultipleInput": false,
+    "inputType": "SINGLE",
     "additionalProperties": {}
   },
   {
@@ -54,7 +54,19 @@
     "description": "Upper case",
     "format": "json",
     "canonize": false,
-    "isMultipleInput": false,
+    "inputType": "SINGLE",
     "additionalProperties": {}
+  },
+  {
+    "_id": "00000000-0000-0000-0000-000000000006",
+    "name": "Constant",
+    "description": "add constant value",
+    "format": "json",
+    "canonize": false,
+    "inputType": "NONE",
+    "additionalProperties": {
+      "_required": ["input value"],
+      "input value": "good"
+    }
   }
 ]

@@ -84,7 +84,7 @@ Uses Lombok (`@Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString`)
 | `description` | `String` | `description` | |
 | `format` | `String` | `format` | e.g. `"string"`, `"json"` |
 | `canonize` | `boolean` | `canonize` | |
-| `multipleInput` | `boolean` | `isMultipleInput` | |
+| `inputType` | `InputType` | `inputType` | Enum values: `NONE`, `SINGLE`, `MULTI` |
 | `additionalProperties` | `Map<String, Object>` | `additionalProperties` | Values may be `String` or `List<String>`. The reserved key `_required` holds a `List<String>` of required property keys. |
 
 #### Built-in transformers (`transformers.json`)
