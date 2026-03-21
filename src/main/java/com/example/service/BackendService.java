@@ -37,6 +37,10 @@ public class BackendService {
             now - 3600 * 1000, now - 86400 * 1000, "staging"));
         teamADeployments.add(new Deployment("2", "ETL Job", "Bitbucket", "running", "2.1.3", "2.0.5",
             now - 1800 * 1000, now - 172800 * 1000, "production"));
+        teamADeployments.add(new Deployment("4", "ETL Job1", "Bitbucket", "stopped", "2.1.3", "2.0.5",
+            now - 1800 * 1000, now - 172800 * 1000, "staging"));
+        teamADeployments.add(new Deployment("5", "ETL Job2", "Bitbucket", "stopped", "2.1.3", "2.0.5",
+            now - 1800 * 1000, now - 172800 * 1000, "staging"));
         teamADeployments.add(new Deployment("3", "Analytics", "GitLab", "stopped", "1.5.2", "1.5.2",
             now - 7200 * 1000, now - 259200 * 1000, "production"));
         teams.put("Team A", teamADeployments);

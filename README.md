@@ -7,6 +7,7 @@ This service exposes REST APIs consumed by a UI to:
 - read backbone entities from JSON,
 - save and retrieve pipeline configurations as raw YAML,
 - fetch deployment lists by team,
+- start deployments and stream real-time progress via SSE,
 - return the pipeline JSON Schema.
 
 ## Tech Stack
@@ -74,6 +75,20 @@ File naming convention: `<productType>_<source>_<team>_<environment>.yml`
 
 ## Data Models
 
+### InputType (enum)
+
+Used by the `Transformer` model to describe how many input fields the transformer accepts.
+
+| Value | Meaning |
+|---|---|
+| `NONE` | Transformer takes no input field (rare) |
+| `SINGLE` | Transformer takes exactly one input field (most common) |
+| `MULTI` | Transformer takes multiple input fields |
+
+> Legacy JSON using `"isMultipleInput": true/false` is still accepted on read (`true` → `MULTI`, `false` → `SINGLE`). New JSON must use `"inputType"`.
+
+---
+
 ### Transformer
 Uses Lombok (`@Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString`).
 
@@ -84,16 +99,18 @@ Uses Lombok (`@Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString`)
 | `description` | `String` | `description` | |
 | `format` | `String` | `format` | e.g. `"string"`, `"json"` |
 | `canonize` | `boolean` | `canonize` | |
-| `inputType` | `InputType` | `inputType` | Enum values: `NONE`, `SINGLE`, `MULTI` |
+| `inputType` | `InputType` | `inputType` | Enum: `NONE`, `SINGLE`, `MULTI`. Legacy `isMultipleInput` boolean is still deserialised. |
 | `additionalProperties` | `Map<String, Object>` | `additionalProperties` | Values may be `String` or `List<String>`. The reserved key `_required` holds a `List<String>` of required property keys. |
 
 #### Built-in transformers (`transformers.json`)
 
-| `_id` | `name` | Description | Notable `additionalProperties` |
-|---|---|---|---|
-| `…000001` | `ToTimestamp` | Convert date string to timestamp | `format`, `zone` (both required), `output_format` |
-| `…000002` | `ConvertMulti` | Convert multiple fields via logic expression | `logic` (required), `defaultValue`, `case_sensitive` |
-| `…000003` | `AddString` | Prepend / insert / append a fixed string | `add_value` (string to add), `position` (`PREFIX` \| `MIDDLE` \| `SUFFIX`) |
+| `_id` | `name` | `inputType` | Description | Notable `additionalProperties` |
+|---|---|---|---|---|
+| `…000001` | `ToTimestamp` | `SINGLE` | Convert date string to timestamp | `format`, `zone` (both required), `output_format` |
+| `…000002` | `ConvertMulti` | `MULTI` | Convert multiple fields via logic expression | `logic` (required), `defaultValue`, `case_sensitive` |
+| `…000003` | `AddString` | `SINGLE` | Prepend / insert / append a fixed string | `add_value`, `position` (`PREFIX` \| `MIDDLE` \| `SUFFIX`) |
+| `…000004` | `LowerCase` | `SINGLE` | Lower-case a field value | — |
+| `…000005` | `UpperCase` | `SINGLE` | Upper-case a field value | — |
 
 > `position` for `AddString` is stored as the enum string `PREFIX`, `MIDDLE`, or `SUFFIX`.
 
@@ -135,16 +152,40 @@ Entities are loaded at start-up from `entity.json` by `BackboneService`.
 
 Returned by the backend deployments endpoint. Populated in-memory (no database).
 
-| Field | Type |
-|---|---|
-| `id` | `String` |
-| `name` | `String` |
-| `source` | `String` |
-| `status` | `String` (`draft` / `running` / `stopped`) |
-| `currentVersion` | `String` |
-| `deployedVersion` | `String` |
-| `lastModified` | `long` (epoch ms) |
-| `createdAt` | `long` (epoch ms) |
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `String` | Pipeline record ID |
+| `productType` | `String` | e.g. `"ETL Job"`, `"Analytics"` |
+| `productSource` | `String` | e.g. `"GitHub"`, `"Bitbucket"` |
+| `deploymentStatus` | `String` | `draft` / `running` / `stopped` |
+| `savedVersion` | `String` | Latest saved version |
+| `deployedVersion` | `String` | Currently deployed version (may be `null`) |
+| `lastStatusChange` | `long` | Epoch ms of last status change |
+| `createdAt` | `long` | Epoch ms of creation |
+| `environment` | `String` | `development` / `staging` / `production` |
+
+---
+
+### DeployResponse
+
+Returned by `POST /api/backend/deployments/deploy`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `success` | `boolean` | Always `true` on 200 OK |
+| `id` | `String` | Same as `deploymentId` (run UUID) |
+| `deploymentId` | `String` | Unique run UUID — use this to open the SSE progress stream |
+
+---
+
+### DeploymentStep
+
+Returned by `GET /api/backend/deployments/steps`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `String` | Step identifier, matches `stepId` in SSE events |
+| `label` | `String` | Human-readable label shown in the progress modal |
 
 ---
 
@@ -173,9 +214,72 @@ Returned by the backend deployments endpoint. Populated in-memory (no database).
 | Method | Path | Consumes | Produces | Description |
 |---|---|---|---|---|
 | `GET` | `/api/backend/deployments?teamName=Team%20A` | — | `application/json` | Returns deployments for the given team |
+| `GET` | `/api/backend/deployments/steps` | — | `application/json` | Returns the ordered list of deployment steps |
+| `POST` | `/api/backend/deployments/deploy` | `text/plain` / `application/json` / `application/x-yaml` | `application/json` | Starts an async deployment run; returns `DeployResponse` with a `deploymentId` |
+| `GET` | `/api/backend/deployments/{deploymentId}/progress` | — | `text/event-stream` | SSE stream of real-time step progress |
 | `GET` | `/api/backend/configuration/yaml?productType=&source=&team=&environment=` | — | `text/plain` | Returns saved YAML configuration as a string |
 | `POST` | `/api/backend/configuration/yaml?productType=&source=&team=&environment=` | `text/plain` | `text/plain` | Saves raw YAML string to disk; returns `"ok"` or `"error: …"` |
-| `POST` | `/api/backend/schema` | `text/plain` / `application/json` | `application/json` | Returns contents of `schema.json` (pipeline JSON Schema). Payload is accepted but currently unused. |
+| `POST` | `/api/backend/schemaByExample` | `text/plain` / `application/json` | `application/json` | Returns a JSON Schema based on the payload hint |
+| `GET` | `/api/backend/schema/entity/{entityName}` | — | `application/json` | Returns the JSON Schema for the named entity |
+
+---
+
+#### Deployment Progress (SSE)
+
+**Flow:**
+1. `POST /api/backend/deployments/deploy` — send the pipeline YAML as the request body; receive a `deploymentId`.
+2. `GET /api/backend/deployments/{deploymentId}/progress` — open an `EventSource` to receive step events.
+3. The stream closes automatically on `deployment-complete` or `deployment-failed` / `step-failed`.
+
+**Step list** (`GET /api/backend/deployments/steps`):
+
+| `id` | `label` |
+|---|---|
+| `validate-config` | Validating pipeline configuration |
+| `prepare-resources` | Preparing Kafka topics |
+| `validate-mappings` | Validating field mappings |
+| `prepare-flink` | Preparing Flink job |
+| `upload-artifacts` | Uploading pipeline artifacts |
+| `register-pipeline` | Registering pipeline |
+| `deploy-job` | Deploying Flink job |
+| `health-checks` | Running health checks |
+
+**SSE events:**
+
+| Event name | Data fields | Emitted when |
+|---|---|---|
+| `step-start` | `stepIndex`, `stepId`, `label` | A step begins |
+| `step-complete` | `stepIndex` | A step finishes successfully |
+| `step-failed` | `stepIndex`, `error` | A step fails — stream closes after this |
+| `deployment-complete` | `success: true` | All steps passed — stream closes after this |
+| `deployment-failed` | `error` | High-level failure (not step-specific) — stream closes after this |
+
+**Example event sequence (success):**
+```
+event: step-start
+data: {"stepIndex":0,"stepId":"validate-config","label":"Validating pipeline configuration"}
+
+event: step-complete
+data: {"stepIndex":0}
+
+...
+
+event: deployment-complete
+data: {"success":true}
+```
+
+**Example event sequence (step failure):**
+```
+event: step-start
+data: {"stepIndex":6,"stepId":"deploy-job","label":"Deploying Flink job"}
+
+event: step-failed
+data: {"stepIndex":6,"error":"Flink job deployment failed: cluster unavailable"}
+```
+
+> **Race-condition handling:** events emitted between the `POST /deploy` response and the browser opening the SSE connection are buffered internally and flushed immediately when the `EventSource` connects.
+
+---
 
 #### Save / Get Configuration YAML
 
@@ -261,18 +365,24 @@ src/main/
 │   ├── config/
 │   │   └── CorsConfig.java
 │   ├── controller/
-│   │   ├── BackboneController.java   # /api/backbone
-│   │   ├── BackendController.java    # /api/backend
-│   │   └── ConfigController.java    # /api/config
+│   │   ├── BackboneController.java      # /api/backbone
+│   │   ├── BackendController.java       # /api/backend (kafka, config YAML, schema)
+│   │   ├── ConfigController.java        # /api/config
+│   │   └── DeploymentController.java    # /api/backend/deployments (deploy + SSE progress)
 │   ├── model/
 │   │   ├── Deployment.java
+│   │   ├── DeploymentStep.java
+│   │   ├── DeployResponse.java
 │   │   ├── Entity.java
 │   │   ├── Filter.java
+│   │   ├── InputType.java               # enum: NONE | SINGLE | MULTI
 │   │   └── Transformer.java
 │   └── service/
-│       ├── BackboneService.java      # loads entity.json
-│       ├── BackendService.java       # saves/loads YAML configs, returns schema
-│       └── ConfigService.java        # loads transformers.json & filters.json
+│       ├── BackboneService.java         # loads entity.json
+│       ├── BackendService.java          # saves/loads YAML configs, returns schema
+│       ├── ConfigService.java           # loads transformers.json & filters.json
+│       ├── DeployProgressService.java   # async deployment execution + SSE emitter registry
+│       └── StepException.java          # per-step failure exception
 └── resources/
     ├── application.yml
     ├── entity.json
