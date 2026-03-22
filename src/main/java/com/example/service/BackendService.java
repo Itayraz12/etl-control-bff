@@ -90,8 +90,13 @@ public class BackendService {
         }
     }
 
-    public String getConfigurationYaml(String productType, String source, String team, String environment) {
-        String fileName = String.format("%s_%s_%s_%s.yml",
+    public String getConfigurationYaml(String productType, String source, String team, String environment, boolean isDraft) {
+        String fileName;
+        if (isDraft){
+            fileName = String.format("%s_%s_%s_%s-draft.yml",
+                    sanitize(productType), sanitize(source), sanitize(team), sanitize(environment));
+        }else
+        fileName = String.format("%s_%s_%s_%s.yml",
             sanitize(productType), sanitize(source), sanitize(team), sanitize(environment));
         Path targetPath = configStorageDir.resolve(fileName);
         if (!Files.exists(targetPath)) {

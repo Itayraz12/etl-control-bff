@@ -78,7 +78,27 @@ public class BackendController {
         logger.info("Request arrived - GET /api/backend/configuration/yaml [productType={}, source={}, team={}, environment={}]",
             productType, source, team, environment);
         try {
-            String yaml = backendService.getConfigurationYaml(productType, source, team, environment);
+            String yaml = backendService.getConfigurationYaml(productType, source, team, environment, false);
+            logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
+            return ResponseEntity.ok(yaml);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
+
+    @GetMapping(value = "/configuration/draft/yaml", produces = {"application/json", "text/plain"})
+    @Operation(summary = "Get configuration YAML by productType, source, team and environment")
+    public ResponseEntity<String> getDraftConfigurationYaml(
+            @RequestParam String productType,
+            @RequestParam String source,
+            @RequestParam String team,
+            @RequestParam String environment) {
+        logger.info("Request arrived - GET /api/backend/configuration/draft/yaml [productType={}, source={}, team={}, environment={}]",
+            productType, source, team, environment);
+        try {
+            String yaml = backendService.getConfigurationYaml(productType, source, team, environment,true);
             logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
             return ResponseEntity.ok(yaml);
         } catch (IllegalArgumentException ex) {
