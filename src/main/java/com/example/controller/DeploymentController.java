@@ -39,16 +39,59 @@ public class DeploymentController {
     }
 
     // ------------------------------------------------------------------
-    // POST /api/backend/deployments/{id}/deploy
+    // POST /api/backend/deployments/deploy
     // ------------------------------------------------------------------
 
     @PostMapping(value = "/deploy", consumes = {"text/plain", "application/x-yaml", "application/json", "application/octet-stream"})
     @Operation(summary = "Start a deployment run; returns a deploymentId for the SSE progress stream")
     public ResponseEntity<DeployResponse> deploy(
+            @RequestParam String productType,
+            @RequestParam String source,
+            @RequestParam String team,
+            @RequestParam String environment,
+            @RequestParam boolean isDeploy,
             @RequestBody String configurationYaml) {
-        logger.info("Request arrived - POST /api/backend/deployments/deploy");
-        String runId = deployProgressService.startDeployment(configurationYaml);
+        logger.info("Request arrived - POST /api/backend/deployments/deploy [productType={}, source={}, team={}, environment={}, isDeploy={}]",
+                productType, source, team, environment, isDeploy);
+        String runId = deployProgressService.startDeployment(productType, source, team, configurationYaml,isDeploy);
         logger.info("Deployment initiated: runId={}", runId);
+        return ResponseEntity.ok(new DeployResponse(true, runId, runId));
+    }
+
+    // ------------------------------------------------------------------
+    // POST /api/backend/deployments/stop
+    // ------------------------------------------------------------------
+
+    @PostMapping(value = "/stop")
+    @Operation(summary = "Stop a running deployment")
+    public ResponseEntity<DeployResponse> stop(
+            @RequestParam String productType,
+            @RequestParam String source,
+            @RequestParam String team,
+            @RequestParam String environment) {
+        logger.info("Request arrived - POST /api/backend/deployments/stop [productType={}, source={}, team={}, environment={}]",
+                productType, source, team, environment);
+        String runId = deployProgressService.stopDeployment(productType, source, team, environment);
+        logger.info("Stop initiated: runId={}", runId);
+        return ResponseEntity.ok(new DeployResponse(true, runId, runId));
+    }
+
+    // ------------------------------------------------------------------
+    // DELETE /api/backend/deployments/delete
+    // ------------------------------------------------------------------
+
+    @DeleteMapping(value = "/delete")
+    @Operation(summary = "Delete a deployment")
+    public ResponseEntity<DeployResponse> delete(
+            @RequestParam String productType,
+            @RequestParam String source,
+            @RequestParam String team,
+            @RequestParam String environment,
+            @RequestParam boolean isPermanent) {
+        logger.info("Request arrived - DELETE /api/backend/deployments/delete [productType={}, source={}, team={}, environment={}, isPermanent={}]",
+                productType, source, team, environment, isPermanent);
+        String runId = deployProgressService.deleteDeployment(productType, source, team, environment, isPermanent);
+        logger.info("Delete initiated: runId={}", runId);
         return ResponseEntity.ok(new DeployResponse(true, runId, runId));
     }
 
