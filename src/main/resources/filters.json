@@ -1,13 +1,25 @@
 [
   {
-    "id": "f-1",
-    "name": "Filter 1",
+    "id": "equals",
+    "name": "equals",
     "rule": "severity >= warning",
     "isInclude": true
   },
   {
-    "id": "f-2",
-    "name": "Filter 2",
+    "id": "greater",
+    "name": "greater",
+    "rule": "source == legacy-system",
+    "isInclude": false
+  },
+  {
+    "id": "smaller",
+    "name": "smaller",
+    "rule": "source == legacy-system",
+    "isInclude": false
+  },
+  {
+    "id": "not equal",
+    "name": "not equal",
     "rule": "source == legacy-system",
     "isInclude": false
   }

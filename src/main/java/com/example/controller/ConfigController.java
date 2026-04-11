@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.model.ConfigOption;
 import com.example.model.Filter;
 import com.example.model.Transformer;
 import com.example.service.ConfigService;
@@ -39,6 +40,26 @@ public class ConfigController {
         logger.info("Request arrived - GET /api/config/filters");
         List<Filter> response = configService.getFilters();
         logger.info("Response payload: {} filters returned", response.size());
+        logger.debug("Response details: {}", response);
+        return response;
+    }
+
+    @GetMapping("/streaming-continuities")
+    @Operation(summary = "Get streaming continuity options")
+    public List<ConfigOption> getStreamingContinuities() {
+        logger.info("Request arrived - GET /api/config/streaming-continuities");
+        List<ConfigOption> response = configService.getStreamingContinuities();
+        logger.info("Response payload: {} streaming continuity options returned", response.size());
+        logger.debug("Response details: {}", response);
+        return response;
+    }
+
+    @GetMapping("/records-per-day")
+    @Operation(summary = "Get average records per day options")
+    public List<ConfigOption> getRecordsPerDayOptions() {
+        logger.info("Request arrived - GET /api/config/records-per-day");
+        List<ConfigOption> response = configService.getRecordsPerDayOptions();
+        logger.info("Response payload: {} records-per-day options returned", response.size());
         logger.debug("Response details: {}", response);
         return response;
     }

@@ -4,22 +4,28 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RecordsPerDay {
-    HUNDREDS("hundreds"),
-    THOUSANDS("thousands"),
-    HUN_THOUSANDS("hun-thousands"),
-    MILLIONS("millions"),
-    TENS_MILLIONS("tens-millions"),
-    HUNDREDS_MILLIONS("hundreds-millions");
+    HUNDREDS("hundreds", "Hundreds"),
+    THOUSANDS("thousands", "Thousands"),
+    HUN_THOUSANDS("hun-thousands", "Hundred of Thousands"),
+    MILLIONS("millions", "A Few Millions"),
+    TENS_MILLIONS("tens-millions", "Tens of Millions"),
+    HUNDREDS_MILLIONS("hundreds-millions", "Hundreds of Millions");
 
     private final String value;
+    private final String label;
 
-    RecordsPerDay(String value) {
+    RecordsPerDay(String value, String label) {
         this.value = value;
+        this.label = label;
     }
 
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    public String getLabel() {
+        return label;
     }
 
     @JsonCreator

@@ -62,5 +62,10 @@ class StreamingContinuityTest {
     void fromValue_unknownValue_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> StreamingContinuity.fromValue("weekly"));
     }
+
+    @Test
+    void getLabel_returnsUiFriendlyLabel() {
+        assertEquals("Every Few Hours", StreamingContinuity.EVERY_FEW_HOURS.getLabel());
+    }
 }
 

@@ -16,5 +16,11 @@ springdoc:
     path: /v3/api-docs
   show-actuator: true
 
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [userId=%X{userId:-N/A}] %logger{36} - %msg%n"
+
 app:
   config-storage-dir: saved-configurations
+  auth:
+    encryption-key: MDEyMzQ1Njc4OWFiY2RlZg==

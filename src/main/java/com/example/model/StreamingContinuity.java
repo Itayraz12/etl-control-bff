@@ -4,21 +4,27 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum StreamingContinuity {
-    ONCE("once"),
-    EVERY_HOUR("every-hour"),
-    EVERY_FEW_HOURS("every-few-hours"),
-    EVERY_DAY("every-day"),
-    CONTINUOUS("continuous");
+    ONCE("once", "Once"),
+    EVERY_HOUR("every-hour", "Every Hour"),
+    EVERY_FEW_HOURS("every-few-hours", "Every Few Hours"),
+    EVERY_DAY("every-day", "Once a Day"),
+    CONTINUOUS("continuous", "Continuous");
 
     private final String value;
+    private final String label;
 
-    StreamingContinuity(String value) {
+    StreamingContinuity(String value, String label) {
         this.value = value;
+        this.label = label;
     }
 
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    public String getLabel() {
+        return label;
     }
 
     @JsonCreator

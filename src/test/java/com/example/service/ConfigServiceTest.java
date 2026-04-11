@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.model.ConfigOption;
 import com.example.model.InputType;
 import com.example.model.Transformer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,5 +67,36 @@ class ConfigServiceTest {
 
         assertTrue(json.contains("\"inputType\":\"NONE\""));
         assertFalse(json.contains("isMultipleInput"));
+    }
+
+    @Test
+    void getStreamingContinuities_shouldReturnOrderedValueLabelOptions() {
+        ConfigService configService = new ConfigService(objectMapper);
+
+        List<ConfigOption> options = configService.getStreamingContinuities();
+
+        assertEquals(List.of(
+            new ConfigOption("once", "Once"),
+            new ConfigOption("every-hour", "Every Hour"),
+            new ConfigOption("every-few-hours", "Every Few Hours"),
+            new ConfigOption("every-day", "Once a Day"),
+            new ConfigOption("continuous", "Continuous")
+        ), options);
+    }
+
+    @Test
+    void getRecordsPerDayOptions_shouldReturnOrderedValueLabelOptions() {
+        ConfigService configService = new ConfigService(objectMapper);
+
+        List<ConfigOption> options = configService.getRecordsPerDayOptions();
+
+        assertEquals(List.of(
+            new ConfigOption("hundreds", "Hundreds"),
+            new ConfigOption("thousands", "Thousands"),
+            new ConfigOption("hun-thousands", "Hundred of Thousands"),
+            new ConfigOption("millions", "A Few Millions"),
+            new ConfigOption("tens-millions", "Tens of Millions"),
+            new ConfigOption("hundreds-millions", "Hundreds of Millions")
+        ), options);
     }
 }

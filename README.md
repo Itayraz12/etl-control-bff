@@ -155,6 +155,7 @@ Returned by the backend deployments endpoint. Populated in-memory (no database).
 | Field | Type | Notes |
 |---|---|---|
 | `id` | `String` | Pipeline record ID |
+| `teamName` | `String` | Owning team name, e.g. `Team A` |
 | `productType` | `String` | e.g. `"ETL Job"`, `"Analytics"` |
 | `productSource` | `String` | e.g. `"GitHub"`, `"Bitbucket"` |
 | `deploymentStatus` | `String` | `draft` / `running` / `stopped` |
@@ -197,6 +198,8 @@ Returned by `GET /api/backend/deployments/steps`.
 |---|---|---|---|
 | `GET` | `/api/config/transformers` | `List<Transformer>` | Returns all transformers loaded from `transformers.json` |
 | `GET` | `/api/config/filters` | `List<Filter>` | Returns all filters loaded from `filters.json` |
+| `GET` | `/api/config/streaming-continuities` | `List<{value,label}>` | Returns the UI options for streaming continuity |
+| `GET` | `/api/config/records-per-day` | `List<{value,label}>` | Returns the UI options for average records per day |
 
 ---
 
@@ -213,14 +216,41 @@ Returned by `GET /api/backend/deployments/steps`.
 
 | Method | Path | Consumes | Produces | Description |
 |---|---|---|---|---|
-| `GET` | `/api/backend/deployments?teamName=Team%20A` | — | `application/json` | Returns deployments for the given team |
+| `GET` | `/api/backend/deployments` or `/api/backend/deployments?teamName=Team%20A` | — | `application/json` | Returns deployments for all teams, or filters by team when `teamName` is provided |
 | `GET` | `/api/backend/deployments/steps` | — | `application/json` | Returns the ordered list of deployment steps |
 | `POST` | `/api/backend/deployments/deploy` | `text/plain` / `application/json` / `application/x-yaml` | `application/json` | Starts an async deployment run; returns `DeployResponse` with a `deploymentId` |
 | `GET` | `/api/backend/deployments/{deploymentId}/progress` | — | `text/event-stream` | SSE stream of real-time step progress |
 | `GET` | `/api/backend/configuration/yaml?productType=&source=&team=&environment=` | — | `text/plain` | Returns saved YAML configuration as a string |
 | `POST` | `/api/backend/configuration/yaml?productType=&source=&team=&environment=` | `text/plain` | `text/plain` | Saves raw YAML string to disk; returns `"ok"` or `"error: …"` |
-| `POST` | `/api/backend/schemaByExample` | `text/plain` / `application/json` | `application/json` | Returns a JSON Schema based on the payload hint |
+| `POST` | `/api/backend/schemaByExample/CSV` or `/api/backend/schemaByExample/JSON` | `text/plain` / `application/json` | `application/json` | Returns a JSON Schema based on the path `formatType` |
 | `GET` | `/api/backend/schema/entity/{entityName}` | — | `application/json` | Returns the JSON Schema for the named entity |
+
+---
+
+### Auth API — `/api/auth`
+
+| Method | Path | Consumes | Produces | Description |
+|---|---|---|---|---|
+| `POST` | `/api/auth/login` | `application/json` | `application/json` | Decrypts username/password, returns the mapped team as JSON, and sets the `user-role` response header |
+
+**Login request body**
+
+```json
+{
+  "username": "<base64-iv>:<base64-ciphertext>",
+  "password": "<base64-iv>:<base64-ciphertext>"
+}
+```
+
+**Supported users**
+
+| Username | Password | JSON response body | `user-role` header |
+|---|---|---|---|
+| `a` | `a` | `{ "teamName": "Team A" }` | `regular` |
+| `b` | `b` | `{ "teamName": "Team B" }` | `regular` |
+| `yarden` | `yarden` | `{ "teamName": "team yarden" }` | `admin` |
+
+The login endpoint is excluded from the required `X-user-id` request header. Credential decryption uses the shared AES key configured under `app.auth.encryption-key`.
 
 ---
 

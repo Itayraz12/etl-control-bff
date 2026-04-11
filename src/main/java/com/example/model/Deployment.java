@@ -2,6 +2,7 @@ package com.example.model;
 
 public class Deployment {
     private String id;
+    private String teamName;
     private String productType;
     private String productSource;
     private String deploymentStatus;
@@ -13,10 +14,11 @@ public class Deployment {
 
     public Deployment() {}
 
-    public Deployment(String id, String productType, String productSource, String deploymentStatus,
+    public Deployment(String id, String teamName, String productType, String productSource, String deploymentStatus,
                       String savedVersion, String deployedVersion, Long lastStatusChange, Long createdAt,
                       String environment) {
         this.id = id;
+        this.teamName = teamName;
         this.productType = productType;
         this.productSource = productSource;
         this.deploymentStatus = deploymentStatus;
@@ -29,6 +31,9 @@ public class Deployment {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
+    public String getTeamName() { return teamName; }
+    public void setTeamName(String teamName) { this.teamName = teamName; }
 
     public String getProductType() { return productType; }
     public void setProductType(String productType) { this.productType = productType; }
@@ -58,6 +63,7 @@ public class Deployment {
     public String toString() {
         return "Deployment{" +
                 "id='" + id + '\'' +
+                ", teamName='" + teamName + '\'' +
                 ", productType='" + productType + '\'' +
                 ", productSource='" + productSource + '\'' +
                 ", deploymentStatus='" + deploymentStatus + '\'' +

@@ -45,6 +45,28 @@ public class BackendController {
         }
     }
 
+    @GetMapping("/rabbitmq/test-connection")
+    @Operation(summary = "Test RabbitMQ connection by queue details and environment")
+    public ResponseEntity<String> testRabbitMqConnection(
+            @RequestParam String vhost,
+            @RequestParam String port,
+            @RequestParam String queueName,
+            @RequestParam String ip,
+            @RequestParam String username,
+            @RequestParam String password,
+            @RequestParam String environment) {
+        logger.info("Request arrived - GET /api/backend/rabbitmq/test-connection [vhost={}, port={}, queueName={}, ip={}, username={}, password={}, environment={}]",
+            vhost, port, queueName, ip, username, maskPassword(password), environment);
+        try {
+            String response = backendService.testRabbitMqConnection(vhost, port, queueName, ip, username, password, environment);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("error: " + ex.getMessage());
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.internalServerError().body("error: " + ex.getMessage());
+        }
+    }
+
     @GetMapping("/teamNames")
     @Operation(summary = "Get supported team names - reads teamNams.txt from classpath")
     public List<String> getTeamNames() {
@@ -59,10 +81,14 @@ public class BackendController {
     }
 
     @GetMapping("/deployments")
-    @Operation(summary = "Get deployments by team name")
-    public List<Deployment> getDeployments(@RequestParam String teamName) {
-        logger.info("Request arrived - GET /api/backend/deployments with teamName: {}", teamName);
-        List<Deployment> response = backendService.getDeployments(teamName);
+    @Operation(summary = "Get deployments for a specific team or for all teams when teamName is omitted")
+    public List<Deployment> getDeployments(@RequestParam(required = false) String teamName) {
+        boolean allTeamsRequested = teamName == null || teamName.isBlank();
+        logger.info("Request arrived - GET /api/backend/deployments [teamName={}]",
+            allTeamsRequested ? "ALL" : teamName);
+        List<Deployment> response = allTeamsRequested
+            ? backendService.getAllDeployments()
+            : backendService.getDeployments(teamName);
         logger.info("Response payload: {} deployments returned", response.size());
         logger.debug("Response details: {}", response);
         return response;
@@ -82,9 +108,11 @@ public class BackendController {
             logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
             return ResponseEntity.ok(yaml);
         } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+            logger.error("Error occurred while getting configuration YAML", ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("eyal is here");
         } catch (IllegalStateException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+            logger.error("Error occurred while getting configuration YAML", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("eyal is here");
         }
     }
 
@@ -143,16 +171,27 @@ public class BackendController {
         }
     }
 
-    @PostMapping(value = "/schemaByExample", consumes = {"text/plain", "application/json", "application/x-yaml", "application/octet-stream"})
-    @Operation(summary = "Get schema from payload - reads schema.json and returns it")
-    public ResponseEntity<String> getSchemaFromPayload(@RequestBody String payload) {
-        logger.info("Request arrived - POST /api/backend/schemaByExample");
+    @PostMapping(value = "/schemaByExample/{formatType}", consumes = {"text/plain", "application/json", "application/x-yaml", "application/octet-stream"})
+    @Operation(summary = "Get schema from payload using a formatType path value such as CSV or JSON")
+    public ResponseEntity<String> getSchemaFromPayload(
+            @PathVariable String formatType,
+            @RequestBody String payload) {
+        logger.info("Request arrived - POST /api/backend/schemaByExample/{}", formatType);
         try {
-            String schema = backendService.getSchemaFromPayload(payload);
+            String schema = backendService.getSchemaFromPayload(payload, formatType);
             logger.info("Response payload: schema returned ({} chars)", schema.length());
             return ResponseEntity.ok(schema);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("error: " + ex.getMessage());
         } catch (IllegalStateException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
         }
+    }
+
+    private String maskPassword(String password) {
+        if (password == null || password.isBlank()) {
+            return "<empty>";
+        }
+        return "*".repeat(Math.min(password.length(), 8));
     }
 }

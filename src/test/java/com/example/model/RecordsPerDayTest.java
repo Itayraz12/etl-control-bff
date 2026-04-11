@@ -65,5 +65,10 @@ class RecordsPerDayTest {
     void fromValue_unknownValue_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> RecordsPerDay.fromValue("billions"));
     }
+
+    @Test
+    void getLabel_returnsUiFriendlyLabel() {
+        assertEquals("Hundred of Thousands", RecordsPerDay.HUN_THOUSANDS.getLabel());
+    }
 }
 

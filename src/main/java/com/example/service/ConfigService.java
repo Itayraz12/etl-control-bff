@@ -1,6 +1,9 @@
 package com.example.service;
 
+import com.example.model.ConfigOption;
 import com.example.model.Filter;
+import com.example.model.RecordsPerDay;
+import com.example.model.StreamingContinuity;
 import com.example.model.Transformer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class ConfigService {
@@ -33,6 +37,18 @@ public class ConfigService {
 
     public List<String> getTeamNames() {
         return readLinesFromResource("teamNams.txt");
+    }
+
+    public List<ConfigOption> getStreamingContinuities() {
+        return Stream.of(StreamingContinuity.values())
+            .map(option -> new ConfigOption(option.getValue(), option.getLabel()))
+            .toList();
+    }
+
+    public List<ConfigOption> getRecordsPerDayOptions() {
+        return Stream.of(RecordsPerDay.values())
+            .map(option -> new ConfigOption(option.getValue(), option.getLabel()))
+            .toList();
     }
 
     private <T> List<T> readListFromResource(String resourceName, TypeReference<List<T>> typeReference) {
