@@ -46,6 +46,15 @@ public class AuthService {
         return new LoginResult(account.teamName(), account.userRole());
     }
 
+    public boolean isAuthenticatedUser(String userId) {
+        return USERS.containsKey(normalizeUserId(userId));
+    }
+
+    public boolean isAdminUser(String userId) {
+        UserAccount account = USERS.get(normalizeUserId(userId));
+        return account != null && "admin".equalsIgnoreCase(account.userRole());
+    }
+
     private String decrypt(String encryptedValue) {
         validateRequired("encryptedValue", encryptedValue);
 
@@ -72,6 +81,10 @@ public class AuthService {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be empty");
         }
+    }
+
+    private String normalizeUserId(String userId) {
+        return userId == null ? null : userId.trim().toLowerCase(Locale.ROOT);
     }
 
     private record UserAccount(String password, String teamName, String userRole) {

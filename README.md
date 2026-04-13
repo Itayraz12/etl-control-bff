@@ -190,6 +190,30 @@ Returned by `GET /api/backend/deployments/steps`.
 
 ---
 
+### AdminTeam
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `String` | Stable slug derived from `teamName` |
+| `teamName` | `String` | Unique team name |
+| `devopsName` | `String` | Required DevOps ownership name |
+| `createdAt` | `String` | ISO-8601 creation timestamp |
+| `updatedAt` | `String` | ISO-8601 last update timestamp |
+
+---
+
+### AdminUser
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `String` | Stable key, aligned with `userId` |
+| `userId` | `String` | Unique user identifier |
+| `teamName` | `String` | Must reference an existing team |
+| `createdAt` | `String` | ISO-8601 creation timestamp |
+| `updatedAt` | `String` | ISO-8601 last update timestamp |
+
+---
+
 ## API Endpoints
 
 ### Config API — `/api/config`
@@ -225,6 +249,32 @@ Returned by `GET /api/backend/deployments/steps`.
 | `POST` | `/api/backend/schemaByExample/CSV` or `/api/backend/schemaByExample/JSON` | `text/plain` / `application/json` | `application/json` | Returns a JSON Schema based on the path `formatType` |
 | `POST` | `/api/backend/filters/evaluate` | `application/json` | `application/json` | Evaluates a nested filter configuration against input field values and returns `{ "matches": boolean }` |
 | `GET` | `/api/backend/schema/entity/{entityName}` | — | `application/json` | Returns the JSON Schema for the named entity |
+
+---
+
+### Admin API — `/api/backend/admin`
+
+All admin endpoints require:
+
+- `X-user-id` request header
+- authenticated user context
+- admin role
+
+Behavior:
+
+- `401` when user context is missing or unauthenticated
+- `403` when the user is authenticated but not admin
+
+| Method | Path | Consumes | Produces | Description |
+|---|---|---|---|---|
+| `GET` | `/api/backend/admin/teams` | — | `application/json` | Returns all teams for the Team Management page |
+| `POST` | `/api/backend/admin/teams` | `application/json` | `application/json` | Creates a team and returns the created entity |
+| `PUT` | `/api/backend/admin/teams/{id}` | `application/json` | `application/json` | Updates a team and returns the updated entity |
+| `DELETE` | `/api/backend/admin/teams/{id}` | — | `application/json` | Deletes a team and returns `{ "success": true }` |
+| `GET` | `/api/backend/admin/users` | — | `application/json` | Returns all users for the User Management page |
+| `POST` | `/api/backend/admin/users` | `application/json` | `application/json` | Creates a user and returns the created entity |
+| `PUT` | `/api/backend/admin/users/{id}` | `application/json` | `application/json` | Updates a user and returns the updated entity |
+| `DELETE` | `/api/backend/admin/users/{id}` | — | `application/json` | Deletes a user and returns `{ "success": true }` |
 
 ---
 

@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -33,8 +34,14 @@ public class UserIdHeaderFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String userId = request.getHeader(HEADER_NAME);
         if (!StringUtils.hasText(userId)) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                "Missing required header '" + HEADER_NAME + "'");
+            if (request.getRequestURI().startsWith("/api/backend/admin/")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.getWriter().write("{\"message\":\"Unauthenticated user\"}");
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing required header '" + HEADER_NAME + "'");
+            }
             return;
         }
 
