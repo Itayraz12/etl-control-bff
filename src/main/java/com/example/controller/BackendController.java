@@ -1,8 +1,11 @@
 package com.example.controller;
 
 import com.example.model.Deployment;
+import com.example.model.FilterEvaluationRequest;
+import com.example.model.FilterEvaluationResponse;
 import com.example.service.BackendService;
 import com.example.service.ConfigService;
+import com.example.service.FilterEvaluationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -27,6 +30,9 @@ public class BackendController {
 
     @Autowired
     private ConfigService configService;
+
+    @Autowired
+    private FilterEvaluationService filterEvaluationService;
 
     @GetMapping("/kafka/test-connection")
     @Operation(summary = "Test Kafka connection by topic name and environment")
@@ -185,6 +191,19 @@ public class BackendController {
             return ResponseEntity.badRequest().body("error: " + ex.getMessage());
         } catch (IllegalStateException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
+
+    @PostMapping(value = "/filters/evaluate", consumes = {"application/json"}, produces = {"application/json"})
+    @Operation(summary = "Evaluate a filter configuration against input field values and return whether it matches")
+    public ResponseEntity<FilterEvaluationResponse> evaluateFilters(@RequestBody FilterEvaluationRequest request) {
+        logger.info("Request arrived - POST /api/backend/filters/evaluate");
+        try {
+            boolean matches = filterEvaluationService.evaluate(request.getConfiguration(), request.getInputFields());
+            logger.info("Response payload: filter evaluation returned {}", matches);
+            return ResponseEntity.ok(new FilterEvaluationResponse(matches));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(new FilterEvaluationResponse(false));
         }
     }
 

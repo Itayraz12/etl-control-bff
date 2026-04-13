@@ -223,6 +223,7 @@ Returned by `GET /api/backend/deployments/steps`.
 | `GET` | `/api/backend/configuration/yaml?productType=&source=&team=&environment=` | — | `text/plain` | Returns saved YAML configuration as a string |
 | `POST` | `/api/backend/configuration/yaml?productType=&source=&team=&environment=` | `text/plain` | `text/plain` | Saves raw YAML string to disk; returns `"ok"` or `"error: …"` |
 | `POST` | `/api/backend/schemaByExample/CSV` or `/api/backend/schemaByExample/JSON` | `text/plain` / `application/json` | `application/json` | Returns a JSON Schema based on the path `formatType` |
+| `POST` | `/api/backend/filters/evaluate` | `application/json` | `application/json` | Evaluates a nested filter configuration against input field values and returns `{ "matches": boolean }` |
 | `GET` | `/api/backend/schema/entity/{entityName}` | — | `application/json` | Returns the JSON Schema for the named entity |
 
 ---

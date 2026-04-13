@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.config.UserIdHeaderFilter;
 import com.example.model.Deployment;
+import com.example.service.FilterEvaluationService;
 import com.example.service.BackendService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,12 +29,15 @@ class BackendControllerTest {
 
     private MockMvc mockMvc;
     private BackendService backendService;
+    private FilterEvaluationService filterEvaluationService;
 
     @BeforeEach
     void setUp() {
         BackendController controller = new BackendController();
         backendService = mock(BackendService.class);
+        filterEvaluationService = mock(FilterEvaluationService.class);
         ReflectionTestUtils.setField(controller, "backendService", backendService);
+        ReflectionTestUtils.setField(controller, "filterEvaluationService", filterEvaluationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .addFilters(new UserIdHeaderFilter())
             .build();
@@ -213,6 +217,43 @@ class BackendControllerTest {
                 .content("payload-body")))
             .andExpect(status().isBadRequest())
             .andExpect(content().string("error: Unsupported formatType: XML"));
+    }
+
+    @Test
+    void evaluateFilters_shouldReturnBooleanMatchResult() throws Exception {
+        when(filterEvaluationService.evaluate(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyMap()))
+            .thenReturn(true);
+
+        mockMvc.perform(withUserId(post("/api/backend/filters/evaluate")
+                .contentType("application/json")
+                .content("""
+                    {
+                      "configuration": {
+                        "filters": {
+                          "config": [
+                            {
+                              "rule": {
+                                "and": [
+                                  {
+                                    "field": "firstName",
+                                    "op": "EQUALS",
+                                    "values": ["john"]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "inputFields": {
+                        "firstName": "john"
+                      }
+                    }
+                    """)))
+            .andExpect(status().isOk())
+            .andExpect(content().json("""
+                {"matches": true}
+                """, true));
     }
 
     private MockHttpServletRequestBuilder withUserId(MockHttpServletRequestBuilder requestBuilder) {
