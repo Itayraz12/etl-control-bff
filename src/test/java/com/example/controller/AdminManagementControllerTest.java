@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasSize;
 
 class AdminManagementControllerTest {
 
@@ -31,7 +32,8 @@ class AdminManagementControllerTest {
     void setUp() {
         AdminRepositories.AdminTeamRepository teamRepository = new AdminRepositories.AdminTeamRepository();
         AdminRepositories.AdminUserRepository userRepository = new AdminRepositories.AdminUserRepository();
-        AdminManagementService adminManagementService = new AdminManagementService(teamRepository, userRepository);
+        AdminRepositories.AdminUdfRepository udfRepository = new AdminRepositories.AdminUdfRepository();
+        AdminManagementService adminManagementService = new AdminManagementService(teamRepository, userRepository, udfRepository);
         AuthService authService = new AuthService("MDEyMzQ1Njc4OWFiY2RlZg==");
 
         mockMvc = MockMvcBuilders.standaloneSetup(new AdminManagementController(adminManagementService))
@@ -64,6 +66,37 @@ class AdminManagementControllerTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].teamName").value("Team A"))
             .andExpect(jsonPath("$[0].devopsName").value("platform-devops"));
+    }
+
+    @Test
+    void getUdfs_shouldReturnFiveTransformersAndFiveFiltersForAdmin() throws Exception {
+        mockMvc.perform(withUserId(get("/api/backend/admin/udfs"), ADMIN_USER_ID))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.length()").value(10))
+            .andExpect(jsonPath("$[?(@.type=='transformer')]", hasSize(5)))
+            .andExpect(jsonPath("$[?(@.type=='filter')]", hasSize(5)));
+    }
+
+    @Test
+    void updateUdfApproval_shouldUpdateApprovalForAdmin() throws Exception {
+        mockMvc.perform(withUserId(put("/api/backend/admin/udfs/udf-f-4"), ADMIN_USER_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "isApproved": true
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value("udf-f-4"))
+            .andExpect(jsonPath("$.isApproved").value(true))
+            .andExpect(jsonPath("$.dateApproved").isNotEmpty());
+    }
+
+    @Test
+    void deleteUdf_shouldReturnNoContentForAdmin() throws Exception {
+        mockMvc.perform(withUserId(delete("/api/backend/admin/udfs/udf-f-5"), ADMIN_USER_ID))
+            .andExpect(status().isNoContent());
     }
 
     @Test

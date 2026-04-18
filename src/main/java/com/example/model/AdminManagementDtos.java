@@ -39,4 +39,23 @@ public final class AdminManagementDtos {
     public static class SuccessResponse {
         private boolean success;
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class UdfApprovalRequest {
+        private Boolean isApproved;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class ErrorResponse {
+        private String error;
+        private String details;
+    }
 }

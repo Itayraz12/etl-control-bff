@@ -236,7 +236,7 @@ class BackendControllerTest {
                                 "and": [
                                   {
                                     "field": "firstName",
-                                    "op": "EQUALS",
+                                    "type": "EQUALS",
                                     "values": ["john"]
                                   }
                                 ]

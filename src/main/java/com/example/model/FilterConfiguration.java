@@ -1,5 +1,6 @@
 package com.example.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -69,7 +70,8 @@ public class FilterConfiguration {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FilterRuleNode {
         private String field;
-        private String op;
+        @JsonAlias("op")
+        private String type;
         private List<String> values;
         private FilterRuleGroup rule;
     }

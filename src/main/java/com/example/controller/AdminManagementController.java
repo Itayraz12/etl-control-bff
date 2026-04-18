@@ -2,9 +2,12 @@ package com.example.controller;
 
 import com.example.model.AdminManagementDtos.SuccessResponse;
 import com.example.model.AdminManagementDtos.TeamUpsertRequest;
+import com.example.model.AdminManagementDtos.UdfApprovalRequest;
 import com.example.model.AdminManagementDtos.UserUpsertRequest;
+import com.example.model.AdminManagementDtos.ErrorResponse;
 import com.example.model.AdminTeam;
 import com.example.model.AdminUser;
+import com.example.model.Udf;
 import com.example.service.admin.AdminManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -86,6 +89,49 @@ public class AdminManagementController {
     public List<AdminUser> getUsers() {
         logger.info("Request arrived - GET /api/backend/admin/users");
         return adminManagementService.getUsers();
+    }
+
+    @GetMapping(value = "/udfs", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Get all UDFs for the admin UDF Management page")
+    public List<Udf> getUdfs() {
+        logger.info("Request arrived - GET /api/backend/admin/udfs");
+        return adminManagementService.getUdfs();
+    }
+
+    @PutMapping(value = "/udfs/{udfId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Update UDF approval status")
+    public ResponseEntity<?> updateUdfApproval(@PathVariable String udfId, @RequestBody UdfApprovalRequest request) {
+        logger.info("Request arrived - PUT /api/backend/admin/udfs/{} [isApproved={}]", udfId, request.getIsApproved());
+        if (request.getIsApproved() == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Bad Request", "isApproved is required"));
+        }
+        try {
+            return ResponseEntity.ok(adminManagementService.updateUdfApproval(udfId, request.getIsApproved()));
+        } catch (IllegalArgumentException ex) {
+            HttpStatus status = "UDF not found".equals(ex.getMessage()) ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+            return ResponseEntity.status(status).body(new ErrorResponse(status.getReasonPhrase(), ex.getMessage()));
+        } catch (Exception ex) {
+            logger.error("Failed to update UDF approval", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Internal Server Error", "Failed to update UDF approval"));
+        }
+    }
+
+    @DeleteMapping(value = "/udfs/{udfId}")
+    @Operation(summary = "Delete a UDF")
+    public ResponseEntity<?> deleteUdf(@PathVariable String udfId) {
+        logger.info("Request arrived - DELETE /api/backend/admin/udfs/{}", udfId);
+        try {
+            adminManagementService.deleteUdf(udfId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("Not Found", ex.getMessage()));
+        } catch (Exception ex) {
+            logger.error("Failed to delete UDF", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Internal Server Error", "Failed to delete UDF"));
+        }
     }
 
     @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

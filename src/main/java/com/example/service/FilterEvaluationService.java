@@ -66,7 +66,7 @@ public class FilterEvaluationService {
         if (!StringUtils.hasText(node.getField())) {
             throw new IllegalArgumentException("Rule field must not be empty");
         }
-        if (!StringUtils.hasText(node.getOp())) {
+        if (!StringUtils.hasText(node.getType())) {
             throw new IllegalArgumentException("Rule operator must not be empty");
         }
         if (CollectionUtils.isEmpty(node.getValues())) {
@@ -78,9 +78,9 @@ public class FilterEvaluationService {
             return false;
         }
 
-        FieldFilterOperator operator = operators.get(normalize(node.getOp()));
+        FieldFilterOperator operator = operators.get(normalize(node.getType()));
         if (operator == null) {
-            throw new IllegalArgumentException("Unsupported filter operator: " + node.getOp());
+            throw new IllegalArgumentException("Unsupported filter operator: " + node.getType());
         }
 
         return operator.matches(actualFieldValue, node.getValues());

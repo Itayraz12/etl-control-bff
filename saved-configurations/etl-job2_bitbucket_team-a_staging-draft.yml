@@ -80,6 +80,6 @@ filters:
     - rule:
         and:
           - field: id
-            op: F-2
+            type: F-2
             values:
               - "1"

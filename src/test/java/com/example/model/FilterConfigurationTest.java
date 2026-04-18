@@ -24,21 +24,21 @@ class FilterConfigurationTest {
                 - rule:
                     and:
                       - field: id
-                        op: F-2
+                        type: F-2
                         values:
                           - "1"
                       - field: firstName
-                        op: NOT_EQUAL
+                        type: NOT_EQUAL
                         values:
                           - "1"
                       - rule:
                           or:
                             - field: lastName
-                              op: GREATER
+                              type: GREATER
                               values:
                                 - "1"
                             - field: age
-                              op: SMALLER
+                              type: SMALLER
                               values:
                                 - "12"
             """;
@@ -56,7 +56,7 @@ class FilterConfigurationTest {
 
         FilterConfiguration.FilterRuleNode firstCondition = configEntry.getRule().getAnd().get(0);
         assertEquals("id", firstCondition.getField());
-        assertEquals("F-2", firstCondition.getOp());
+        assertEquals("F-2", firstCondition.getType());
         assertEquals("1", firstCondition.getValues().get(0));
 
         FilterConfiguration.FilterRuleNode nestedRuleNode = configEntry.getRule().getAnd().get(2);
@@ -65,7 +65,7 @@ class FilterConfigurationTest {
 
         FilterConfiguration.FilterRuleNode nestedOrCondition = nestedRuleNode.getRule().getOr().get(1);
         assertEquals("age", nestedOrCondition.getField());
-        assertEquals("SMALLER", nestedOrCondition.getOp());
+        assertEquals("SMALLER", nestedOrCondition.getType());
         assertEquals("12", nestedOrCondition.getValues().get(0));
     }
 }

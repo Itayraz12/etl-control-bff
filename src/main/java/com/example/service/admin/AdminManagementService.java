@@ -4,9 +4,11 @@ import com.example.model.AdminManagementDtos.TeamUpsertRequest;
 import com.example.model.AdminManagementDtos.UserUpsertRequest;
 import com.example.model.AdminTeam;
 import com.example.model.AdminUser;
+import com.example.model.Udf;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.example.service.admin.AdminRepositories.nowIso;
@@ -17,11 +19,14 @@ public class AdminManagementService {
 
     private final AdminRepositories.AdminTeamRepository teamRepository;
     private final AdminRepositories.AdminUserRepository userRepository;
+    private final AdminRepositories.AdminUdfRepository udfRepository;
 
     public AdminManagementService(AdminRepositories.AdminTeamRepository teamRepository,
-                                  AdminRepositories.AdminUserRepository userRepository) {
+                                  AdminRepositories.AdminUserRepository userRepository,
+                                  AdminRepositories.AdminUdfRepository udfRepository) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
+        this.udfRepository = udfRepository;
     }
 
     public List<AdminTeam> getTeams() {
@@ -76,6 +81,32 @@ public class AdminManagementService {
 
     public List<AdminUser> getUsers() {
         return userRepository.findAll();
+    }
+
+    public List<Udf> getUdfs() {
+        return udfRepository.findAll();
+    }
+
+    public Udf updateUdfApproval(String udfId, boolean isApproved) {
+        Udf existing = udfRepository.findById(udfId)
+            .orElseThrow(() -> new IllegalArgumentException("UDF not found"));
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean approvalChangedToTrue = !Boolean.TRUE.equals(existing.isApproved()) && isApproved;
+
+        existing.setIsApproved(isApproved);
+        if (approvalChangedToTrue) {
+            existing.setDateApproved(now);
+        }
+        existing.setUpdatedAt(now);
+
+        return udfRepository.save(existing);
+    }
+
+    public void deleteUdf(String udfId) {
+        udfRepository.findById(udfId)
+            .orElseThrow(() -> new IllegalArgumentException("UDF not found"));
+        udfRepository.delete(udfId);
     }
 
     public AdminUser createUser(UserUpsertRequest request) {

@@ -48,7 +48,7 @@ class FilterEvaluationServiceTest {
     @Test
     void evaluate_shouldRejectUnsupportedOperator() {
         FilterConfiguration configuration = configurationWithNestedRule();
-        configuration.getFilters().getConfig().get(0).getRule().getAnd().get(0).setOp("UNKNOWN");
+        configuration.getFilters().getConfig().get(0).getRule().getAnd().get(0).setType("UNKNOWN");
 
         assertThrows(IllegalArgumentException.class,
             () -> filterEvaluationService.evaluate(configuration, Map.of("firstName", "john", "lastName", "cleease", "age", "30")));

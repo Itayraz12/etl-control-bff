@@ -16,6 +16,8 @@ public class Filter {
     private String id;
     private String name;
     private String rule;
+    @JsonProperty("isRevertible")
+    private boolean revertible;
 
     @JsonProperty("isInclude")
     private boolean include;

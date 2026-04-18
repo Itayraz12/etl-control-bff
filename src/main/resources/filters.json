@@ -3,25 +3,22 @@
     "id": "equals",
     "name": "equals",
     "rule": "severity >= warning",
-    "isInclude": true
+    "isInclude": true,
+    "isRevertible": true
   },
   {
     "id": "greater",
     "name": "greater",
     "rule": "source == legacy-system",
-    "isInclude": false
+    "isInclude": false,
+    "isRevertible": true
   },
   {
     "id": "smaller",
     "name": "smaller",
     "rule": "source == legacy-system",
-    "isInclude": false
-  },
-  {
-    "id": "not equal",
-    "name": "not equal",
-    "rule": "source == legacy-system",
-    "isInclude": false
+    "isInclude": false,
+    "isRevertible": false
   }
 ]
 
