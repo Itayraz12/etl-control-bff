@@ -1,0 +1,140 @@
+metadata:
+  genomeEntity: personObject
+  location: "HOME1"
+  productSource: GitLab4
+  productType: Analytics
+  environment: PROD
+  owner: Team A
+  dataStreamInfo:
+    streamingContinuity: continuous
+    avgRecordsAmount: millions
+general:
+  inputFormat: JSON
+  outputFormat: JSON
+  isShadowEnabled: true
+  isDog2Enabled: true
+  isDemo1Enabled: true
+source:
+  kafka:
+    brokers: PROD
+    topic: source_products_raw
+    offset: earliest
+input:
+  convert:
+    mapping:
+      - name: id
+        type: string
+      - name: productName
+        type: string
+      - name: price
+        type: number
+      - name: stockQty
+        type: number
+      - name: category
+        type: string
+      - name: isActive
+        type: boolean
+      - name: createdAt
+        type: date
+      - name: updatedAt
+        type: date
+output:
+  mapping:
+    - inName: stockQty
+      outName: unitPrice
+      sendToGP: true
+      sendToDog2: true
+      expression: "r=o"
+    - inName: category
+      outName: sku
+      sendToGP: true
+      sendToDog2: true
+    - inName: createdAt
+      outName: status
+      sendToGP: true
+      sendToDog2: true
+    - inName: updatedAt
+      outName: quantity
+      sendToGP: true
+      sendToDog2: true
+    - inName: productName
+      outName: name
+      sendToGP: true
+      sendToDog2: true
+      additionalInputs:
+        - price
+        - id
+    - inName: isActive
+      outName: isEnabled
+      sendToGP: true
+      sendToDog2: true
+    - inName: id
+      outName: firstName
+      sendToGP: true
+      sendToDog2: true
+    - inName: id
+      outName: lastName
+      sendToGP: true
+      sendToDog2: true
+    - inName: isActive
+      outName: address.street
+      sendToGP: true
+      sendToDog2: true
+    - inName: isActive
+      outName: address.city
+      sendToGP: true
+      sendToDog2: true
+    - inName: isActive
+      outName: address.postalCode
+      sendToGP: true
+      sendToDog2: true
+    - inName: isActive
+      outName: address.country
+      sendToGP: true
+      sendToDog2: true
+    - inName: ""
+      outName: age
+      sendToGP: true
+      sendToDog2: true
+  kafka:
+    brokers: PROD
+    topic: etl_products_v3
+    shadow_topic:
+  dog2:
+    dog2_topic:
+transformations:
+  - "ToTimestamp([category],[format=a, zone=a, output_format=a]) -> (unknown, sku)"
+  - "ConvertMulti([productName,price,id],[logic=a:b?12|a:f?14]) -> (unknown, name)"
+  - "AddString([isActive]) -> (unknown, isEnabled)"
+  - "Constant([],[input value=aaa]) -> (number, age)"
+filters:
+  dependencies:
+    - type: equals
+    - type: isUpperCase
+    - type: inRangeText
+    - type: inRangeIP
+  config:
+    - rule:
+        and:
+          - field: productName
+            isReverted: false
+            type: equals
+            params:
+              - severity: tv
+          - field: price
+            isReverted: false
+            type: isUpperCase
+            params: []
+          - field: id
+            isReverted: false
+            type: inRangeText
+            params:
+              - minValue: a
+              - maxValue: b
+          - field: id
+            isReverted: false
+            type: inRangeIP
+            params:
+              - minValue: a
+              - maxValue: a
+  mode: exclude

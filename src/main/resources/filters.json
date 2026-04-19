@@ -1,24 +1,153 @@
 [
   {
-    "id": "equals",
+    "_id": "filter-001",
     "name": "equals",
-    "rule": "severity >= warning",
-    "isInclude": true,
-    "isRevertible": true
+    "createDate": "2026-04-10T09:30:00",
+    "description": "Matches records where severity is warning or higher.",
+    "owner": "team-a",
+    "s3Path": "s3://etl-control/filters/equals/v1/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": true,
+    "version": "1.0.0",
+    "additionalParams": [
+      {
+        "name": "severity",
+        "description": "Minimum severity threshold to include.",
+        "type": "string",
+        "isArray": false
+      }
+    ]
   },
   {
-    "id": "greater",
+    "_id": "filter-002",
     "name": "greater",
-    "rule": "source == legacy-system",
-    "isInclude": false,
-    "isRevertible": true
+    "createDate": "2026-04-11T11:15:00",
+    "description": "Includes records where numeric field is above a threshold.",
+    "owner": "team-a",
+    "s3Path": "s3://etl-control/filters/greater/v2/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": true,
+    "version": "2.0.0",
+    "additionalParams": [
+      {
+        "name": "threshold",
+        "description": "Numeric lower bound for the selected field.",
+        "type": "number",
+        "isArray": false
+      }
+    ]
   },
   {
-    "id": "smaller",
+    "_id": "filter-003",
     "name": "smaller",
-    "rule": "source == legacy-system",
-    "isInclude": false,
-    "isRevertible": false
+    "createDate": "2026-04-12T14:45:00",
+    "description": "Includes records where numeric field is below a threshold.",
+    "owner": "team-b",
+    "s3Path": "s3://etl-control/filters/smaller/v1/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": false,
+    "version": "1.1.0",
+    "additionalParams": [
+      {
+        "name": "maxValue",
+        "description": "Numeric upper bound for the selected field.",
+        "type": "number",
+        "isArray": false
+      }
+    ]
+  },
+  {
+    "_id": "filter-004",
+    "name": "inRange",
+    "createDate": "2026-04-19T10:00:00",
+    "description": "Includes records where numeric field is between min and max values.",
+    "owner": "team-a",
+    "s3Path": "s3://etl-control/filters/in-range/v1/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": true,
+    "version": "1.0.0",
+    "additionalParams": [
+      {
+        "name": "minValue",
+        "description": "Minimum numeric value for range matching.",
+        "type": "number",
+        "isArray": false
+      },
+      {
+        "name": "maxValue",
+        "description": "Maximum numeric value for range matching.",
+        "type": "number",
+        "isArray": false
+      }
+    ]
+  },
+  {
+    "_id": "filter-005",
+    "name": "isUpperCase",
+    "createDate": "2026-04-19T10:30:00",
+    "description": "Includes records where the selected text field is uppercase.",
+    "owner": "team-a",
+    "s3Path": "s3://etl-control/filters/is-uppercase/v1/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": true,
+    "version": "1.0.0",
+    "additionalParams": []
+  },
+  {
+    "_id": "filter-006",
+    "name": "inRangeText",
+    "createDate": "2026-04-19T11:00:00",
+    "description": "Includes records where text values are within the configured lexical range.",
+    "owner": "team-a",
+    "s3Path": "s3://etl-control/filters/in-range-text/v1/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": true,
+    "version": "1.0.0",
+    "additionalParams": [
+      {
+        "name": "minValue",
+        "description": "Lower bound text value for range matching.",
+        "type": "string",
+        "isArray": false
+      },
+      {
+        "name": "maxValue",
+        "description": "Upper bound text value for range matching.",
+        "type": "string",
+        "isArray": false
+      }
+    ]
+  },
+  {
+    "_id": "filter-007",
+    "name": "inRangeIP",
+    "createDate": "2026-04-19T11:05:00",
+    "description": "Includes records where IPv4 values are within the configured address range.",
+    "owner": "team-a",
+    "s3Path": "s3://etl-control/filters/in-range-ip/v1/filter.py",
+    "approved": true,
+    "isActive": true,
+    "isRevertible": true,
+    "version": "1.0.0",
+    "additionalParams": [
+      {
+        "name": "minValue",
+        "description": "Lower bound IPv4 value for range matching.",
+        "type": "ipv4",
+        "isArray": false
+      },
+      {
+        "name": "maxValue",
+        "description": "Upper bound IPv4 value for range matching.",
+        "type": "ipv4",
+        "isArray": false
+      }
+    ]
   }
 ]
-
