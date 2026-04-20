@@ -9,9 +9,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -35,13 +38,19 @@ public class ConfigController {
     }
 
     @GetMapping("/filters")
-    @Operation(summary = "Get all filters")
-    public List<Filter> getFilters() {
-        logger.info("Request arrived - GET /api/config/filters");
-        List<Filter> response = configService.getFilters();
-        logger.info("Response payload: {} filters returned", response.size());
-        logger.debug("Response details: {}", response);
-        return response;
+    @Operation(summary = "Get all filters for an environment")
+    public List<Filter> getFilters(@RequestParam String environment) {
+        logger.info("Request arrived - GET /api/config/filters [environment={}]", environment);
+        try {
+            List<Filter> response = configService.getFilters(environment);
+            logger.info("Response payload: {} filters returned", response.size());
+            logger.debug("Response details: {}", response);
+            return response;
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
     }
 
     @GetMapping("/streaming-continuities")

@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.config.UserIdHeaderFilter;
 import com.example.model.ConfigOption;
+import com.example.model.Filter;
 import com.example.service.ConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,10 +71,44 @@ class ConfigControllerTest {
     }
 
     @Test
+    void getFilters_shouldUseEnvironmentRequestParam() throws Exception {
+        when(configService.getFilters("prod")).thenReturn(List.of(
+            new Filter("filter-001", "equals", null, "Matches records", "team-a",
+                "s3://etl-control/filters/equals/v1/filter.py", true, true, true, "1.0.0", List.of())
+        ));
+
+        mockMvc.perform(withUserId(get("/api/config/filters")
+                .param("environment", "prod")))
+            .andExpect(status().isOk())
+            .andExpect(content().json("""
+                [
+                  {"_id":"filter-001","name":"equals","description":"Matches records"}
+                ]
+                """, false));
+    }
+
+    @Test
     void getStreamingContinuities_shouldRejectWhenUserIdHeaderIsMissing() throws Exception {
         mockMvc.perform(get("/api/config/streaming-continuities"))
             .andExpect(status().isBadRequest())
             .andExpect(status().reason("Missing required header 'X-user-id'"));
+    }
+
+    @Test
+    void getFilters_shouldRejectWhenUserIdHeaderIsMissing() throws Exception {
+        mockMvc.perform(get("/api/config/filters")
+                .param("environment", "prod"))
+            .andExpect(status().isBadRequest())
+            .andExpect(status().reason("Missing required header 'X-user-id'"));
+    }
+
+    @Test
+    void getFilters_shouldRejectBlankEnvironment() throws Exception {
+        when(configService.getFilters(" ")).thenThrow(new IllegalArgumentException("environment must not be empty"));
+
+        mockMvc.perform(withUserId(get("/api/config/filters")
+                .param("environment", " ")))
+            .andExpect(status().isBadRequest());
     }
 
     private MockHttpServletRequestBuilder withUserId(MockHttpServletRequestBuilder requestBuilder) {

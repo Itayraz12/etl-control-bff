@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.model.ConfigOption;
+import com.example.model.Filter;
 import com.example.model.InputType;
 import com.example.model.Transformer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigServiceTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Test
     void getTransforers_shouldPopulateAdditionalPropertiesAndInputType() {
@@ -67,6 +68,16 @@ class ConfigServiceTest {
 
         assertTrue(json.contains("\"inputType\":\"NONE\""));
         assertFalse(json.contains("isMultipleInput"));
+    }
+
+    @Test
+    void getFilters_shouldLoadFiltersForProvidedEnvironment() {
+        ConfigService configService = new ConfigService(objectMapper);
+
+        List<Filter> filters = configService.getFilters("prod");
+
+        assertFalse(filters.isEmpty(), "Expected filters list to be loaded from filters.json");
+        assertEquals("equals", filters.get(0).getName());
     }
 
     @Test

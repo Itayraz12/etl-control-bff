@@ -31,7 +31,10 @@ public class ConfigService {
         return readListFromResource("transformers.json", new TypeReference<>() {});
     }
 
-    public List<Filter> getFilters() {
+    public List<Filter> getFilters(String environment) {
+        if (environment == null || environment.isBlank()) {
+            throw new IllegalArgumentException("environment must not be empty");
+        }
         return readListFromResource("filters.json", new TypeReference<>() {});
     }
 

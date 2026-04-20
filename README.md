@@ -221,7 +221,7 @@ Returned by `GET /api/backend/deployments/steps`.
 | Method | Path | Response | Description |
 |---|---|---|---|
 | `GET` | `/api/config/transformers` | `List<Transformer>` | Returns all transformers loaded from `transformers.json` |
-| `GET` | `/api/config/filters` | `List<Filter>` | Returns all filters loaded from `filters.json` |
+| `GET` | `/api/config/filters?environment=prod` | `List<Filter>` | Returns all filters loaded from `filters.json` for the requested environment |
 | `GET` | `/api/config/streaming-continuities` | `List<{value,label}>` | Returns the UI options for streaming continuity |
 | `GET` | `/api/config/records-per-day` | `List<{value,label}>` | Returns the UI options for average records per day |
 
