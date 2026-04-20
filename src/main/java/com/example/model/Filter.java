@@ -38,6 +38,7 @@ public class Filter {
     @ToString
     public static class AdditionalParam {
         private String name;
+        private String displayName;
         private String description;
         private String type;
         @JsonProperty("isArray")

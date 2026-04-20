@@ -10,7 +10,7 @@ class DeploymentTest {
     @Test
     void deployment_shouldStoreTeamNameFromConstructor() {
         Deployment deployment = new Deployment("1", "Team A", "ETL Job", "Bitbucket", "running",
-            "2.1.3", "2.0.5", 10L, 20L, "staging");
+            "2.1.3", "2.0.5", "2026-05-15T12:58:56.323", "2026-05-14T12:58:56.323", "CAP");
 
         assertEquals("Team A", deployment.getTeamName());
         assertTrue(deployment.toString().contains("teamName='Team A'"));

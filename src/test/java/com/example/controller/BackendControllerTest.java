@@ -45,23 +45,23 @@ class BackendControllerTest {
 
     @Test
     void testKafkaConnection_shouldReturnSuccess() throws Exception {
-        when(backendService.testKafkaConnection("topic-1", "staging")).thenReturn("success");
+        when(backendService.testKafkaConnection("topic-1", "CAP")).thenReturn("success");
 
         mockMvc.perform(withUserId(get("/api/backend/kafka/test-connection"))
                 .param("topicName", "topic-1")
-                .param("environment", "staging"))
+                .param("environment", "CAP"))
             .andExpect(status().isOk())
             .andExpect(content().string("success"));
     }
 
     @Test
     void testKafkaConnection_shouldReturnBadRequestWhenTopicIsBlank() throws Exception {
-        when(backendService.testKafkaConnection("", "staging"))
+        when(backendService.testKafkaConnection("", "CAP"))
             .thenThrow(new IllegalArgumentException("topicName must not be empty"));
 
         mockMvc.perform(withUserId(get("/api/backend/kafka/test-connection"))
                 .param("topicName", "")
-                .param("environment", "staging"))
+                .param("environment", "CAP"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string("error: topicName must not be empty"));
     }
@@ -102,28 +102,28 @@ class BackendControllerTest {
 
     @Test
     void getConfigurationYaml_shouldReturnRequestedMessageWhenConfigurationIsMissing() throws Exception {
-        when(backendService.getConfigurationYaml("analytics", "gitlab", "team-a", "staging", false))
+        when(backendService.getConfigurationYaml("analytics", "gitlab", "team-a", "CAP", false))
             .thenThrow(new IllegalArgumentException("missing config"));
 
         mockMvc.perform(withUserId(get("/api/backend/configuration/yaml"))
                 .param("productType", "analytics")
                 .param("source", "gitlab")
                 .param("team", "team-a")
-                .param("environment", "staging"))
+                .param("environment", "CAP"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("eyal is here"));
     }
 
     @Test
     void getConfigurationYaml_shouldReturnRequestedMessageWhenServiceFails() throws Exception {
-        when(backendService.getConfigurationYaml("analytics", "gitlab", "team-a", "staging", false))
+        when(backendService.getConfigurationYaml("analytics", "gitlab", "team-a", "CAP", false))
             .thenThrow(new IllegalStateException("service failure"));
 
         mockMvc.perform(withUserId(get("/api/backend/configuration/yaml"))
                 .param("productType", "analytics")
                 .param("source", "gitlab")
                 .param("team", "team-a")
-                .param("environment", "staging"))
+                .param("environment", "CAP"))
             .andExpect(status().isInternalServerError())
             .andExpect(content().string("eyal is here"));
     }
@@ -131,16 +131,18 @@ class BackendControllerTest {
     @Test
     void getDeployments_shouldReturnAllTeamsWhenTeamNameIsMissing() throws Exception {
         when(backendService.getAllDeployments()).thenReturn(List.of(
-            new Deployment("1", "Team A", "Data Pipeline", "GitHub", "draft", "1.0.0", "1.0.0", 1L, 1L, "staging"),
-            new Deployment("2", "Team B", "Analytics4", "GitLab", "running", "3.0.1", "2.9.0", 2L, 2L, "production")
+            new Deployment("1", "Team A", "Data Pipeline", "GitHub", "draft", "1.0.0", "1.0.0",
+                "2026-05-15T12:58:56.323", "2026-05-14T12:58:56.323", "CAP"),
+            new Deployment("2", "Team B", "Analytics4", "GitLab", "running", "3.0.1", "2.9.0",
+                "2026-05-15T13:58:56.323", "2026-05-13T12:58:56.323", "PROD")
         ));
 
         mockMvc.perform(withUserId(get("/api/backend/deployments")))
             .andExpect(status().isOk())
             .andExpect(content().json("""
                 [
-                  {"id":"1","teamName":"Team A","productType":"Data Pipeline"},
-                  {"id":"2","teamName":"Team B","productType":"Analytics4"}
+                  {"id":"1","teamName":"Team A","productType":"Data Pipeline","lastStatusChange":"2026-05-15T12:58:56.323","createdAt":"2026-05-14T12:58:56.323"},
+                  {"id":"2","teamName":"Team B","productType":"Analytics4","lastStatusChange":"2026-05-15T13:58:56.323","createdAt":"2026-05-13T12:58:56.323"}
                 ]
                 """, false));
     }
@@ -148,7 +150,8 @@ class BackendControllerTest {
     @Test
     void getDeployments_shouldReturnTeamDeploymentsWhenTeamNameIsProvided() throws Exception {
         when(backendService.getDeployments("Team A")).thenReturn(List.of(
-            new Deployment("1", "Team A", "Data Pipeline", "GitHub", "draft", "1.0.0", "1.0.0", 1L, 1L, "staging")
+            new Deployment("1", "Team A", "Data Pipeline", "GitHub", "draft", "1.0.0", "1.0.0",
+                "2026-05-15T12:58:56.323", "2026-05-14T12:58:56.323", "CAP")
         ));
 
         mockMvc.perform(withUserId(get("/api/backend/deployments")
@@ -156,7 +159,7 @@ class BackendControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().json("""
                 [
-                  {"id":"1","teamName":"Team A","productType":"Data Pipeline"}
+                  {"id":"1","teamName":"Team A","productType":"Data Pipeline","lastStatusChange":"2026-05-15T12:58:56.323","createdAt":"2026-05-14T12:58:56.323"}
                 ]
                 """, false));
     }
@@ -165,14 +168,14 @@ class BackendControllerTest {
     void testKafkaConnection_shouldRejectRequestWhenUserIdHeaderIsMissing() throws Exception {
         mockMvc.perform(get("/api/backend/kafka/test-connection")
                 .param("topicName", "topic-1")
-                .param("environment", "staging"))
+                .param("environment", "CAP"))
             .andExpect(status().isBadRequest())
             .andExpect(status().reason("Missing required header 'X-user-id'"));
     }
 
     @Test
     void testKafkaConnection_shouldPrintUserIdToSystemOut() throws Exception {
-        when(backendService.testKafkaConnection("topic-1", "staging")).thenReturn("success");
+        when(backendService.testKafkaConnection("topic-1", "CAP")).thenReturn("success");
 
         PrintStream originalOut = System.out;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -182,7 +185,7 @@ class BackendControllerTest {
 
             mockMvc.perform(withUserId(get("/api/backend/kafka/test-connection"))
                     .param("topicName", "topic-1")
-                    .param("environment", "staging"))
+                    .param("environment", "CAP"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("success"));
         } finally {

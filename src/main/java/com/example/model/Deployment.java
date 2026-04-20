@@ -8,14 +8,14 @@ public class Deployment {
     private String deploymentStatus;
     private String savedVersion;
     private String deployedVersion;
-    private Long lastStatusChange;
-    private Long createdAt;
+    private String lastStatusChange;
+    private String createdAt;
     private String environment;
 
     public Deployment() {}
 
     public Deployment(String id, String teamName, String productType, String productSource, String deploymentStatus,
-                      String savedVersion, String deployedVersion, Long lastStatusChange, Long createdAt,
+                      String savedVersion, String deployedVersion, String lastStatusChange, String createdAt,
                       String environment) {
         this.id = id;
         this.teamName = teamName;
@@ -50,11 +50,11 @@ public class Deployment {
     public String getDeployedVersion() { return deployedVersion; }
     public void setDeployedVersion(String deployedVersion) { this.deployedVersion = deployedVersion; }
 
-    public Long getLastStatusChange() { return lastStatusChange; }
-    public void setLastStatusChange(Long lastStatusChange) { this.lastStatusChange = lastStatusChange; }
+    public String getLastStatusChange() { return lastStatusChange; }
+    public void setLastStatusChange(String lastStatusChange) { this.lastStatusChange = lastStatusChange; }
 
-    public Long getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Long createdAt) { this.createdAt = createdAt; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
     public String getEnvironment() { return environment; }
     public void setEnvironment(String environment) { this.environment = environment; }

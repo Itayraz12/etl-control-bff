@@ -41,6 +41,8 @@ class BackendServiceTest {
         assertEquals(15, deployments.size());
         assertEquals("1", deployments.get(0).getId());
         assertEquals("Team A", deployments.get(0).getTeamName());
+        assertTrue(deployments.get(0).getLastStatusChange().matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+        assertTrue(deployments.get(0).getCreatedAt().matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
         assertEquals("12", deployments.get(deployments.size() - 1).getId());
         assertEquals("Team D1", deployments.get(deployments.size() - 1).getTeamName());
     }

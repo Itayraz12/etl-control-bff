@@ -11,6 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,6 +22,9 @@ import java.util.Map;
 
 @Service
 public class BackendService {
+
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     private final Map<String, List<Deployment>> teamDeployments;
     private final Path configStorageDir;
@@ -35,50 +41,57 @@ public class BackendService {
         // Team A deployments
         List<Deployment> teamADeployments = new ArrayList<>();
         teamADeployments.add(new Deployment("1", "Team A", "Data Pipeline", "GitHub", "draft", "1.0.0", "1.0.0",
-            now - 3600 * 1000, now - 86400 * 1000, "staging"));
+            formatTimestamp(now - 3600 * 1000), formatTimestamp(now - 86400 * 1000), "CAP"));
         teamADeployments.add(new Deployment("2", "Team A", "ETL Job", "Bitbucket", "running", "2.1.3", "2.0.5",
-            now - 1800 * 1000, now - 172800 * 1000, "production"));
+            formatTimestamp(now - 1800 * 1000), formatTimestamp(now - 172800 * 1000), "PROD"));
         teamADeployments.add(new Deployment("4", "Team A", "ETL Job1", "Bitbucket", "running", "2.1.3", "2.0.5",
-            now - 1800 * 1000, now - 172800 * 1000, "staging"));
+            formatTimestamp(now - 1800 * 1000), formatTimestamp(now - 172800 * 1000), "CAP"));
         teamADeployments.add(new Deployment("5", "Team A", "ETL Job2", "Bitbucket", "stopped", "4.1.3", "2.0.5",
-            now - 1800 * 1000, now - 172800 * 1000, "staging"));
+            formatTimestamp(now - 1800 * 1000), formatTimestamp(now - 172800 * 1000), "CAP"));
         teamADeployments.add(new Deployment("3", "Team A", "Analytics", "GitLab", "stopped", "1.5.2", "1.5.2",
-            now - 7200 * 1000, now - 259200 * 1000, "production"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "PROD"));
         teamADeployments.add(new Deployment("6", "Team A", "Analytics", "GitLab4", "stopped", "4.5.2", "2.5.2",
-            now - 7200 * 1000, now - 259200 * 1000, "production"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "PROD"));
         teams.put("Team A", teamADeployments);
 
         // Team B deployments
         List<Deployment> teamBDeployments = new ArrayList<>();
         teamBDeployments.add(new Deployment("4", "Team B", "Analytics4", "GitLab", "running", "3.0.1", "2.9.0",
-            now - 7200 * 1000, now - 259200 * 1000, "production"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "PROD"));
         teamBDeployments.add(new Deployment("5", "Team B", "Analytics5", "GitLab", "stopped", "1.2.0", "1.2.0",
-            now - 7200 * 1000, now - 259200 * 1000, "staging"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teamBDeployments.add(new Deployment("6", "Team B", "Analytics6", "GitLab", "draft", "2.0.0", null,
-            now - 7200 * 1000, now - 259200 * 1000, "development"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teams.put("Team B", teamBDeployments);
 
         // Team C deployments
         List<Deployment> teamCDeployments = new ArrayList<>();
         teamCDeployments.add(new Deployment("7", "Team C", "Analytics7", "GitLab", "draft", "1.3.5", null,
-            now - 7200 * 1000, now - 259200 * 1000, "development"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teamCDeployments.add(new Deployment("8", "Team C", "Analytics8", "GitLab", "draft", "2.2.1", null,
-            now - 7200 * 1000, now - 259200 * 1000, "development"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teamCDeployments.add(new Deployment("9", "Team C", "Analytics9", "GitLab", "draft", "1.1.0", null,
-            now - 7200 * 1000, now - 259200 * 1000, "staging"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teams.put("Team C", teamCDeployments);
 
         // Team D deployments
         List<Deployment> teamDDeployments = new ArrayList<>();
         teamDDeployments.add(new Deployment("10", "Team D1", "Analytics10", "GitLab", "draft", "1.7.2", null,
-            now - 7200 * 1000, now - 259200 * 1000, "development"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teamDDeployments.add(new Deployment("11", "Team D1", "Analytics11", "GitLab", "draft", "2.3.0", null,
-            now - 7200 * 1000, now - 259200 * 1000, "staging"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "CAP"));
         teamDDeployments.add(new Deployment("12", "Team D1", "Analytics12", "GitLab", "draft", "1.4.8", null,
-            now - 7200 * 1000, now - 259200 * 1000, "production"));
+            formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "PROD"));
         teams.put("Team D1", teamDDeployments);
 
         return teams;
+    }
+
+    private String formatTimestamp(long epochMillis) {
+        return Instant.ofEpochMilli(epochMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+            .format(TIMESTAMP_FORMATTER);
     }
 
     public String testKafkaConnection(String topicName, String environment) {

@@ -13,6 +13,7 @@
     "additionalParams": [
       {
         "name": "severity",
+        "displayName": "Severity",
         "description": "Minimum severity threshold to include.",
         "type": "string",
         "isArray": false
@@ -33,6 +34,7 @@
     "additionalParams": [
       {
         "name": "threshold",
+        "displayName": "Threshold",
         "description": "Numeric lower bound for the selected field.",
         "type": "number",
         "isArray": false
@@ -53,6 +55,7 @@
     "additionalParams": [
       {
         "name": "maxValue",
+        "displayName": "Max Value",
         "description": "Numeric upper bound for the selected field.",
         "type": "number",
         "isArray": false
@@ -73,12 +76,14 @@
     "additionalParams": [
       {
         "name": "minValue",
+        "displayName": "Min Value",
         "description": "Minimum numeric value for range matching.",
         "type": "number",
         "isArray": false
       },
       {
         "name": "maxValue",
+        "displayName": "Max Value",
         "description": "Maximum numeric value for range matching.",
         "type": "number",
         "isArray": false
@@ -112,12 +117,14 @@
     "additionalParams": [
       {
         "name": "minValue",
+        "displayName": "Min Value",
         "description": "Lower bound text value for range matching.",
         "type": "string",
         "isArray": false
       },
       {
         "name": "maxValue",
+        "displayName": "Max Value",
         "description": "Upper bound text value for range matching.",
         "type": "string",
         "isArray": false
@@ -138,12 +145,14 @@
     "additionalParams": [
       {
         "name": "minValue",
+        "displayName": "Min Value",
         "description": "Lower bound IPv4 value for range matching.",
         "type": "ipv4",
         "isArray": false
       },
       {
         "name": "maxValue",
+        "displayName": "Max Value",
         "description": "Upper bound IPv4 value for range matching.",
         "type": "ipv4",
         "isArray": false
