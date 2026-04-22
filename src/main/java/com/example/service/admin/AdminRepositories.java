@@ -3,8 +3,16 @@ package com.example.service.admin;
 import com.example.model.AdminTeam;
 import com.example.model.AdminUser;
 import com.example.model.Udf;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -75,12 +83,31 @@ public final class AdminRepositories {
 
     @Component
     public static class AdminUserRepository {
-        private final Map<String, AdminUser> users = new ConcurrentHashMap<>();
+        private static final Logger logger = LoggerFactory.getLogger(AdminUserRepository.class);
 
-        public AdminUserRepository() {
-            seedUser("a", "Team A", "2026-01-15T10:00:00Z");
-            seedUser("b", "Team B", "2026-01-16T10:00:00Z");
-            seedUser("yarden", "Yarden", "2026-01-17T10:00:00Z");
+        private final Map<String, AdminUser> users = new ConcurrentHashMap<>();
+        private final Map<String, String> userTeamsById = new ConcurrentHashMap<>();
+
+        public AdminUserRepository(
+                @Value("${app.mock-mode:true}") boolean mockMode,
+                ObjectMapper objectMapper) {
+            if (mockMode) {
+                seedUser("a", "Team A", "2026-01-15T10:00:00Z");
+                seedUser("b", "Team B", "2026-01-16T10:00:00Z");
+                seedUser("yarden", "Yarden", "2026-01-17T10:00:00Z");
+            } else {
+                loadFromJson(objectMapper);
+            }
+        }
+
+        private void loadFromJson(ObjectMapper objectMapper) {
+            try (InputStream is = new ClassPathResource("adminuser.json").getInputStream()) {
+                List<AdminUser> loaded = objectMapper.readValue(is, new TypeReference<>() {});
+                loaded.forEach(user -> users.put(user.getId(), copy(user)));
+                logger.info("Loaded {} admin users from adminuser.json", loaded.size());
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to load adminuser.json", e);
+            }
         }
 
         public List<AdminUser> findAll() {
@@ -106,8 +133,12 @@ public final class AdminRepositories {
         }
 
         public List<AdminUser> findByTeamName(String teamName) {
-            return users.values().stream()
-                .filter(user -> user.getTeamName().equalsIgnoreCase(teamName))
+            return users.entrySet().stream()
+                .filter(entry -> {
+                    String assignedTeamName = userTeamsById.get(entry.getKey());
+                    return assignedTeamName != null && assignedTeamName.equalsIgnoreCase(teamName);
+                })
+                .map(Map.Entry::getValue)
                 .map(this::copy)
                 .toList();
         }
@@ -117,21 +148,30 @@ public final class AdminRepositories {
             return copy(user);
         }
 
-        public void delete(String id) {
-            users.remove(id);
+        public AdminUser save(AdminUser user, String teamName) {
+            users.put(user.getId(), copy(user));
+            userTeamsById.put(user.getId(), teamName);
+            return copy(user);
         }
 
-        public void renameTeam(String oldTeamName, String newTeamName, String updatedAt) {
-            List<AdminUser> affectedUsers = new ArrayList<>(findByTeamName(oldTeamName));
-            affectedUsers.forEach(user -> save(new AdminUser(user.getId(), user.getUserId(), newTeamName, user.getCreatedAt(), updatedAt)));
+        public void delete(String id) {
+            users.remove(id);
+            userTeamsById.remove(id);
+        }
+
+        public void renameTeam(String oldTeamName, String newTeamName) {
+            userTeamsById.entrySet().stream()
+                .filter(entry -> entry.getValue().equalsIgnoreCase(oldTeamName))
+                .forEach(entry -> userTeamsById.put(entry.getKey(), newTeamName));
         }
 
         private void seedUser(String userId, String teamName, String timestamp) {
-            users.put(userId, new AdminUser(userId, userId, teamName, timestamp, timestamp));
+            users.put(userId, new AdminUser(userId, userId, timestamp));
+            userTeamsById.put(userId, teamName);
         }
 
         private AdminUser copy(AdminUser user) {
-            return new AdminUser(user.getId(), user.getUserId(), user.getTeamName(), user.getCreatedAt(), user.getUpdatedAt());
+            return new AdminUser(user.getId(), user.getUserId(), user.getCreatedAt());
         }
     }
 

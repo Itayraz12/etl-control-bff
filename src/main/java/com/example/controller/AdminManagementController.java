@@ -4,6 +4,7 @@ import com.example.model.AdminManagementDtos.SuccessResponse;
 import com.example.model.AdminManagementDtos.TeamUpsertRequest;
 import com.example.model.AdminManagementDtos.UdfApprovalRequest;
 import com.example.model.AdminManagementDtos.UserUpsertRequest;
+import com.example.model.AdminManagementDtos.AdminUserSummaryResponse;
 import com.example.model.AdminManagementDtos.ErrorResponse;
 import com.example.model.AdminTeam;
 import com.example.model.AdminUser;
@@ -89,6 +90,13 @@ public class AdminManagementController {
     public List<AdminUser> getUsers() {
         logger.info("Request arrived - GET /api/backend/admin/users");
         return adminManagementService.getUsers();
+    }
+
+    @GetMapping(value = "/admin-users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Get admin users with userId and createdDate")
+    public List<AdminUserSummaryResponse> getAdminUsers() {
+        logger.info("Request arrived - GET /api/backend/admin/admin-users");
+        return adminManagementService.getAdminUsers();
     }
 
     @GetMapping(value = "/udfs", produces = MediaType.APPLICATION_JSON_VALUE)

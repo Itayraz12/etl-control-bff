@@ -22,5 +22,6 @@ logging:
 
 app:
   config-storage-dir: saved-configurations
+  mock-mode: true
   auth:
     encryption-key: MDEyMzQ1Njc4OWFiY2RlZg==

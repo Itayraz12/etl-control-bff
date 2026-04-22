@@ -1,13 +1,19 @@
 package com.example.service.admin;
 
+import com.example.model.AdminManagementDtos.AdminUserSummaryResponse;
 import com.example.model.AdminManagementDtos.TeamUpsertRequest;
 import com.example.model.AdminManagementDtos.UserUpsertRequest;
 import com.example.model.AdminTeam;
 import com.example.model.AdminUser;
 import com.example.model.Udf;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,13 +26,16 @@ public class AdminManagementService {
     private final AdminRepositories.AdminTeamRepository teamRepository;
     private final AdminRepositories.AdminUserRepository userRepository;
     private final AdminRepositories.AdminUdfRepository udfRepository;
+    private final ObjectMapper objectMapper;
 
     public AdminManagementService(AdminRepositories.AdminTeamRepository teamRepository,
                                   AdminRepositories.AdminUserRepository userRepository,
-                                  AdminRepositories.AdminUdfRepository udfRepository) {
+                                  AdminRepositories.AdminUdfRepository udfRepository,
+                                  ObjectMapper objectMapper) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
         this.udfRepository = udfRepository;
+        this.objectMapper = objectMapper;
     }
 
     public List<AdminTeam> getTeams() {
@@ -66,7 +75,7 @@ public class AdminManagementService {
             teamRepository.delete(existingTeam.getId());
         }
         teamRepository.save(updatedTeam);
-        userRepository.renameTeam(existingTeam.getTeamName(), updatedTeam.getTeamName(), updatedAt);
+        userRepository.renameTeam(existingTeam.getTeamName(), updatedTeam.getTeamName());
         return updatedTeam;
     }
 
@@ -81,6 +90,17 @@ public class AdminManagementService {
 
     public List<AdminUser> getUsers() {
         return userRepository.findAll();
+    }
+
+    public List<AdminUserSummaryResponse> getAdminUsers() {
+        try (InputStream is = new ClassPathResource("adminuser.json").getInputStream()) {
+            List<AdminUser> adminUsers = objectMapper.readValue(is, new TypeReference<>() {});
+            return adminUsers.stream()
+                .map(user -> new AdminUserSummaryResponse(user.getUserId(), user.getCreatedAt()))
+                .toList();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load adminuser.json", e);
+        }
     }
 
     public List<Udf> getUdfs() {
@@ -118,8 +138,9 @@ public class AdminManagementService {
         }
 
         String timestamp = nowIso();
-        AdminUser user = new AdminUser(request.getUserId().trim(), request.getUserId().trim(), resolveCanonicalTeamName(request.getTeamName()), timestamp, timestamp);
-        return userRepository.save(user);
+        String canonicalTeamName = resolveCanonicalTeamName(request.getTeamName());
+        AdminUser user = new AdminUser(request.getUserId().trim(), request.getUserId().trim(), timestamp);
+        return userRepository.save(user, canonicalTeamName);
     }
 
     public AdminUser updateUser(String id, UserUpsertRequest request) {
@@ -137,11 +158,12 @@ public class AdminManagementService {
             });
 
         String newId = request.getUserId().trim();
-        AdminUser updatedUser = new AdminUser(newId, newId, resolveCanonicalTeamName(request.getTeamName()), existingUser.getCreatedAt(), nowIso());
+        String canonicalTeamName = resolveCanonicalTeamName(request.getTeamName());
+        AdminUser updatedUser = new AdminUser(newId, newId, existingUser.getCreatedAt());
         if (!existingUser.getId().equals(newId)) {
             userRepository.delete(existingUser.getId());
         }
-        return userRepository.save(updatedUser);
+        return userRepository.save(updatedUser, canonicalTeamName);
     }
 
     public void deleteUser(String id) {

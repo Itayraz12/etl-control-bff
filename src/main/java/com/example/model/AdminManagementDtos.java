@@ -36,6 +36,16 @@ public final class AdminManagementDtos {
     @NoArgsConstructor
     @AllArgsConstructor
     @ToString
+    public static class AdminUserSummaryResponse {
+        private String userId;
+        private String createdDate;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
     public static class SuccessResponse {
         private boolean success;
     }

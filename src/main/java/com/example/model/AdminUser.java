@@ -14,7 +14,5 @@ import lombok.ToString;
 public class AdminUser {
     private String id;
     private String userId;
-    private String teamName;
     private String createdAt;
-    private String updatedAt;
 }

@@ -19,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/backend")
+@RequestMapping("/api")
 @Tag(name = "Backend Service", description = "Backend service operations")
 public class BackendController {
 

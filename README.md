@@ -208,9 +208,7 @@ Returned by `GET /api/backend/deployments/steps`.
 |---|---|---|
 | `id` | `String` | Stable key, aligned with `userId` |
 | `userId` | `String` | Unique user identifier |
-| `teamName` | `String` | Must reference an existing team |
 | `createdAt` | `String` | ISO-8601 creation timestamp |
-| `updatedAt` | `String` | ISO-8601 last update timestamp |
 
 ---
 
@@ -272,6 +270,7 @@ Behavior:
 | `PUT` | `/api/backend/admin/teams/{id}` | `application/json` | `application/json` | Updates a team and returns the updated entity |
 | `DELETE` | `/api/backend/admin/teams/{id}` | — | `application/json` | Deletes a team and returns `{ "success": true }` |
 | `GET` | `/api/backend/admin/users` | — | `application/json` | Returns all users for the User Management page |
+| `GET` | `/api/backend/admin/admin-users` | — | `application/json` | Returns admin users as `{ userId, createdDate }` |
 | `POST` | `/api/backend/admin/users` | `application/json` | `application/json` | Creates a user and returns the created entity |
 | `PUT` | `/api/backend/admin/users/{id}` | `application/json` | `application/json` | Updates a user and returns the updated entity |
 | `DELETE` | `/api/backend/admin/users/{id}` | — | `application/json` | Deletes a user and returns `{ "success": true }` |

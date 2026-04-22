@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/backend/deployments")
+@RequestMapping("/api/backend")
 @Tag(name = "Deployment Progress", description = "Real-time deployment progress via SSE")
 public class DeploymentController {
 
