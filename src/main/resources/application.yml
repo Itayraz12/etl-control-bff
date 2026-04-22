@@ -25,3 +25,11 @@ app:
   mock-mode: true
   auth:
     encryption-key: MDEyMzQ1Njc4OWFiY2RlZg==
+
+kafka:
+  environments:
+    HOME: localhost:9092
+    OFFICE: localhost:9092
+    HOME1: localhost:9092
+    OFFICE1: localhost:9092
+
