@@ -100,7 +100,7 @@ public class BackendController {
         return response;
     }
 
-    @GetMapping(value = "/configuration/yaml", produces = {"application/json", "text/plain"})
+    @GetMapping(value = "/backend/configuration/yaml", produces = {"application/json", "text/plain"})
     @Operation(summary = "Get configuration YAML by productType, source, team and environment")
     public ResponseEntity<String> getConfigurationYaml(
             @RequestParam String productType,
@@ -122,7 +122,7 @@ public class BackendController {
         }
     }
 
-    @GetMapping(value = "/configuration/draft/yaml", produces = {"application/json", "text/plain"})
+    @GetMapping(value = "/backend//configuration/draft/yaml", produces = {"application/json", "text/plain"})
     @Operation(summary = "Get configuration YAML by productType, source, team and environment")
     public ResponseEntity<String> getDraftConfigurationYaml(
             @RequestParam String productType,
