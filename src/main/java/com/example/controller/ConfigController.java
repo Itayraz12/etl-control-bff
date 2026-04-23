@@ -29,8 +29,8 @@ public class ConfigController {
 
     @GetMapping("/transformers")
     @Operation(summary = "Get all transforers")
-    public List<Transformer> getTransforers() {
-        logger.info("Request arrived - GET /api/config/transforers");
+    public List<Transformer> getTransforers(@RequestParam String environment) {
+        logger.info("Request arrived - GET /api/config/transforers [environment={}]", environment);
         List<Transformer> response = configService.getTransforers();
         logger.info("Response payload: {} transforers returned", response.size());
         logger.debug("Response details: {}", response);
