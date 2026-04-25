@@ -1,85 +1,110 @@
 package com.example.controller;
 
 import com.example.model.DeployResponse;
+import com.example.model.Deployment;
 import com.example.model.DeploymentStep;
+import com.example.service.BackendService;
 import com.example.service.DeployProgressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/backend")
+@RequestMapping("/api/deployment/")
 @Tag(name = "Deployment Progress", description = "Real-time deployment progress via SSE")
 public class DeploymentController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentController.class);
-
+    @Autowired
+    private BackendService backendService;
     @Autowired
     private DeployProgressService deployProgressService;
-
-    // ------------------------------------------------------------------
-    // GET /api/backend/deployments/steps
-    // ------------------------------------------------------------------
-
-    @GetMapping("/steps")
-    @Operation(summary = "Get ordered deployment steps shown in the progress modal")
-    public List<DeploymentStep> getSteps() {
-        logger.info("Request arrived - GET /api/backend/deployments/steps");
-        List<DeploymentStep> steps = deployProgressService.getSteps();
-        logger.info("Response payload: {} steps returned", steps.size());
-        return steps;
-    }
-
-    // ------------------------------------------------------------------
-    // POST /api/backend/deployments/deploy
-    // ------------------------------------------------------------------
-
-    @PostMapping(value = "/deploy", consumes = {"text/plain", "application/x-yaml", "application/json", "application/octet-stream"})
-    @Operation(summary = "Start a deployment run; returns a deploymentId for the SSE progress stream")
-    public ResponseEntity<DeployResponse> deploy(
+    @PostMapping(value = "/configuration/yaml", consumes = {"text/plain", "application/x-yaml", "application/json", "application/octet-stream"})
+    @Operation(summary = "Save configuration from YAML string. File is saved under deploymentConfig/<productType>_<source>_<team>_<environment>.yml")
+    public ResponseEntity<String> saveConfigurationYaml(
             @RequestParam String productType,
             @RequestParam String source,
             @RequestParam String team,
             @RequestParam String environment,
-            @RequestParam boolean isDeploy,
             @RequestBody String configurationYaml) {
-        logger.info("Request arrived - POST /api/backend/deployments/deploy [productType={}, source={}, team={}, environment={}, isDeploy={}]",
-                productType, source, team, environment, isDeploy);
-        String runId = deployProgressService.startDeployment(productType, source, team, configurationYaml,isDeploy);
-        logger.info("Deployment initiated: runId={}", runId);
-        return ResponseEntity.ok(new DeployResponse(true, runId, runId));
+        logger.info("Request arrived - POST /api/deployment/configuration/yaml [productType={}, source={}, team={}, environment={}]",
+                productType, source, team, environment);
+        try {
+            backendService.saveConfigurationYaml(productType, source, team, environment, configurationYaml);
+            return ResponseEntity.ok("ok");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("error: " + ex.getMessage());
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.internalServerError().body("error: " + ex.getMessage());
+        }
     }
 
-    // ------------------------------------------------------------------
-    // POST /api/backend/deployments/stop
-    // ------------------------------------------------------------------
+    @GetMapping("/deployments")
+    @Operation(summary = "Get deployments for a specific team or for all teams when teamName is omitted")
+    public List<Deployment> getDeployments(@RequestParam(required = false) String teamName) {
+        boolean allTeamsRequested = teamName == null || teamName.isBlank() || teamName.contains("yarden");
+        logger.info("Request arrived - GET /api/deployment/deployments [teamName={}]",
+                allTeamsRequested ? "ALL" : teamName);
+        List<Deployment> response = allTeamsRequested
+                ? backendService.getAllDeployments()
+                : backendService.getDeployments(teamName);
+        logger.info("Response payload: {} deployments returned", response.size());
+        logger.debug("Response details: {}", response);
+        return response;
+    }
 
-    @PostMapping(value = "/stop")
-    @Operation(summary = "Stop a running deployment")
-    public ResponseEntity<DeployResponse> stop(
+
+    @GetMapping(value = "/configuration/yaml", produces = {"application/json", "text/plain"})
+    @Operation(summary = "Get configuration YAML by productType, source, team and environment")
+    public ResponseEntity<String> getConfigurationYaml(
             @RequestParam String productType,
             @RequestParam String source,
             @RequestParam String team,
             @RequestParam String environment) {
-        logger.info("Request arrived - POST /api/backend/deployments/stop [productType={}, source={}, team={}, environment={}]",
+        logger.info("Request arrived - GET /api/deployment/configuration/yaml [productType={}, source={}, team={}, environment={}]",
                 productType, source, team, environment);
-        String runId = deployProgressService.stopDeployment(productType, source, team, environment);
-        logger.info("Stop initiated: runId={}", runId);
-        return ResponseEntity.ok(new DeployResponse(true, runId, runId));
+        try {
+            String yaml = backendService.getConfigurationYaml(productType, source, team, environment, false);
+            logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
+            return ResponseEntity.ok(yaml);
+        } catch (IllegalArgumentException ex) {
+            logger.error("Error occurred while getting configuration YAML", ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("eyal is here");
+        } catch (IllegalStateException ex) {
+            logger.error("Error occurred while getting configuration YAML", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("eyal is here");
+        }
     }
 
-    // ------------------------------------------------------------------
-    // DELETE /api/backend/deployments/delete
-    // ------------------------------------------------------------------
-
+    @GetMapping(value = "/configuration/draft/yaml", produces = {"application/json", "text/plain"})
+    @Operation(summary = "Get configuration YAML by productType, source, team and environment")
+    public ResponseEntity<String> getDraftConfigurationYaml(
+            @RequestParam String productType,
+            @RequestParam String source,
+            @RequestParam String team,
+            @RequestParam String environment) {
+        logger.info("Request arrived - GET /api/deployment/configuration/draft/yaml [productType={}, source={}, team={}, environment={}]",
+                productType, source, team, environment);
+        try {
+            String yaml = backendService.getConfigurationYaml(productType, source, team, environment,true);
+            logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
+            return ResponseEntity.ok(yaml);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
     @DeleteMapping(value = "/delete")
     @Operation(summary = "Delete a deployment")
     public ResponseEntity<DeployResponse> delete(
@@ -94,18 +119,21 @@ public class DeploymentController {
         logger.info("Delete initiated: runId={}", runId);
         return ResponseEntity.ok(new DeployResponse(true, runId, runId));
     }
-
-    // ------------------------------------------------------------------
-    // GET /api/backend/deployments/{deploymentId}/progress  (SSE)
-    // ------------------------------------------------------------------
-
-    @GetMapping(value = "/{deploymentId}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @Operation(summary = "SSE stream of real-time step progress for a deployment run")
-    public SseEmitter streamProgress(@PathVariable String deploymentId) {
-        logger.info("Request arrived - GET /api/backend/deployments/{}/progress", deploymentId);
-        SseEmitter emitter = new SseEmitter(300_000L); // 5-minute timeout
-        deployProgressService.registerEmitter(deploymentId, emitter);
-        return emitter;
+    @PostMapping(value = "/restore")
+    @Operation(summary = "Delete a deployment")
+    public ResponseEntity<DeployResponse> restore(
+            @RequestParam String productType,
+            @RequestParam String source,
+            @RequestParam String team,
+            @RequestParam String environment) {
+        logger.info("Request arrived - DELETE /api/backend/deployments/delete [productType={}, source={}, team={}, environment={}, isPermanent={}]",
+                productType, source, team, environment);
+        String runId = deployProgressService.restoreDeployment(productType, source, team, environment);
+        logger.info("Delete initiated: runId={}", runId);
+        return ResponseEntity.ok(new DeployResponse(true, runId, runId));
     }
+
+
+
 }
 

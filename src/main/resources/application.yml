@@ -28,8 +28,6 @@ app:
 
 kafka:
   environments:
-    HOME: localhost:9092
-    OFFICE: localhost:9092
-    HOME1: localhost:9092
-    OFFICE1: localhost:9092
+    CAP: localhost:9092
+    PROD: localhost:9092
 

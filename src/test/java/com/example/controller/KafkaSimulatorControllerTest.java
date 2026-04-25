@@ -45,6 +45,7 @@ class KafkaSimulatorControllerTest {
     private KafkaTopicVerifier topicVerifier;
     private KafkaProducer<String, byte[]> mockProducer;
     private ObjectMapper objectMapper;
+    private com.example.service.simulator.KafkaSimulatorTaskPlanService taskPlanService;
 
     @BeforeEach
     void setUp() {
@@ -79,8 +80,11 @@ class KafkaSimulatorControllerTest {
         when(topicVerifier.topicExists(any(), any())).thenReturn(true);
         simulatorService = new KafkaSimulatorService(producerPool, scheduler, topicVerifier);
 
+        // Mock task plan service for now (these tests don't focus on task plans)
+        taskPlanService = mock(com.example.service.simulator.KafkaSimulatorTaskPlanService.class);
+
         mockMvc = MockMvcBuilders
-            .standaloneSetup(new KafkaSimulatorController(simulatorService))
+            .standaloneSetup(new KafkaSimulatorController(simulatorService, taskPlanService))
             .build();
     }
 
@@ -419,5 +423,27 @@ class KafkaSimulatorControllerTest {
             .getContentAsString();
         return objectMapper.readTree(response).get("taskId").asText();
     }
-}
 
+    @Test
+    void deleteTaskPlan_byId_returnsSuccess() throws Exception {
+        mockMvc.perform(delete("/api/simulator/kafka/task-plans")
+                .header(USER_HEADER, USER)
+                .param("id", "plan-1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+
+        verify(taskPlanService).deleteTaskPlan(USER, "plan-1", null);
+    }
+
+    @Test
+    void deleteTaskPlan_notFound_returns404() throws Exception {
+        doThrow(new IllegalArgumentException("Task plan not found"))
+            .when(taskPlanService).deleteTaskPlan(USER, "missing", null);
+
+        mockMvc.perform(delete("/api/simulator/kafka/task-plans")
+                .header(USER_HEADER, USER)
+                .param("id", "missing"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Task plan not found"));
+    }
+}

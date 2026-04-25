@@ -46,7 +46,7 @@ public class BackendService {
             formatTimestamp(now - 1800 * 1000), formatTimestamp(now - 172800 * 1000), "PROD"));
         teamADeployments.add(new Deployment("4", "Team A", "ETL Job1", "Bitbucket", "running", "2.1.3", "2.0.5",
             formatTimestamp(now - 1800 * 1000), formatTimestamp(now - 172800 * 1000), "CAP"));
-        teamADeployments.add(new Deployment("5", "Team A", "ETL Job2", "Bitbucket", "stopped", "4.1.3", "2.0.5",
+        teamADeployments.add(new Deployment("5", "Team A", "ETL Job2", "Bitbucket", "running", "4.1.3", "2.0.5",
             formatTimestamp(now - 1800 * 1000), formatTimestamp(now - 172800 * 1000), "CAP"));
         teamADeployments.add(new Deployment("3", "Team A", "Analytics", "GitLab", "stopped", "1.5.2", "1.5.2",
             formatTimestamp(now - 7200 * 1000), formatTimestamp(now - 259200 * 1000), "PROD"));

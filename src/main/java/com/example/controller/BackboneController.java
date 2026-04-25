@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/backbone")
+@RequestMapping("/api/genome")
 @Tag(name = "Backbone Service", description = "Backbone service operations")
 public class BackboneController {
 
@@ -21,21 +21,24 @@ public class BackboneController {
     @Autowired
     private BackboneService backboneService;
 
-    @GetMapping("/entity/{id}")
+    @GetMapping("/schema/{id}")
     @Operation(summary = "Get entity by ID")
     public Entity getEntity(@PathVariable String id) {
-        logger.info("Request arrived - GET /api/backbone/entity/{}", id);
+        logger.info("Request arrived - GET /api/genome/schema/{}", id);
         Entity entity = backboneService.getEntity(id);
         logger.info("Response payload: entity returned for id={}", id);
         logger.debug("Response details: {}", entity);
         return entity;
     }
 
-    @GetMapping("/entities")
+    @GetMapping("/getGenomeEntityList")
     @Operation(summary = "Get all entity list")
-    public List<Entity> getEntity() {
-        logger.info("Request arrived - GET /api/backbone/entities");
+    public List<Entity> getEntityList(@RequestParam String environment) {
+        logger.info("Request arrived - GET /api/genome/getGenomeEntityList [environment={}]", environment);
         List<Entity> entities = backboneService.getEntity();
+        if (environment.equalsIgnoreCase("prod")) {
+            entities.add(new Entity("eyal", "eyal","Unknown", "UnknownType"));
+        }
         logger.info("Response payload: {} entities returned", entities.size());
         logger.debug("Response details: {}", entities);
         return entities;

@@ -38,27 +38,34 @@ input:
         type: date
       - name: updatedAt
         type: date
+schema:
+  outputSchema: "Person-with-Address"
 output:
   mapping:
     - inName: stockQty
       outName: unitPrice
+      type: unknown
       sendToGP: true
       sendToDog2: true
       expression: "r=o"
     - inName: category
       outName: sku
+      type: unknown
       sendToGP: true
       sendToDog2: true
     - inName: createdAt
       outName: status
+      type: unknown
       sendToGP: true
       sendToDog2: true
     - inName: updatedAt
       outName: quantity
+      type: unknown
       sendToGP: true
       sendToDog2: true
     - inName: productName
       outName: name
+      type: unknown
       sendToGP: true
       sendToDog2: true
       additionalInputs:
@@ -66,30 +73,37 @@ output:
         - id
     - inName: isActive
       outName: isEnabled
+      type: unknown
       sendToGP: true
       sendToDog2: true
     - inName: id
       outName: firstName
+      type: string
       sendToGP: true
       sendToDog2: true
     - inName: id
       outName: lastName
+      type: string
       sendToGP: true
       sendToDog2: true
     - inName: isActive
       outName: address.street
+      type: string
       sendToGP: true
       sendToDog2: true
     - inName: isActive
       outName: address.city
+      type: string
       sendToGP: true
       sendToDog2: true
     - inName: isActive
       outName: address.postalCode
+      type: string
       sendToGP: true
       sendToDog2: true
     - inName: isActive
       outName: address.country
+      type: string
       sendToGP: true
       sendToDog2: true
   kafka:

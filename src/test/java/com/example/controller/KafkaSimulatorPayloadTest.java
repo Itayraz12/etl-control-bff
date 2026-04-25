@@ -58,8 +58,12 @@ class KafkaSimulatorPayloadTest {
         KafkaTopicVerifier topicVerifier = mock(KafkaTopicVerifier.class);
         KafkaSimulatorService simulatorService = new KafkaSimulatorService(producerPool, scheduler, topicVerifier);
 
+        // Mock task plan service
+        com.example.service.simulator.KafkaSimulatorTaskPlanService taskPlanService =
+            mock(com.example.service.simulator.KafkaSimulatorTaskPlanService.class);
+
         mockMvc = MockMvcBuilders
-            .standaloneSetup(new KafkaSimulatorController(simulatorService))
+            .standaloneSetup(new KafkaSimulatorController(simulatorService, taskPlanService))
             .build();
     }
 

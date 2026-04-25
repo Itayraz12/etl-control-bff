@@ -23,9 +23,12 @@ public class KafkaSimulatorController {
     private static final Logger log = LoggerFactory.getLogger(KafkaSimulatorController.class);
 
     private final KafkaSimulatorService simulatorService;
+    private final com.example.service.simulator.KafkaSimulatorTaskPlanService taskPlanService;
 
-    public KafkaSimulatorController(KafkaSimulatorService simulatorService) {
+    public KafkaSimulatorController(KafkaSimulatorService simulatorService,
+                                    com.example.service.simulator.KafkaSimulatorTaskPlanService taskPlanService) {
         this.simulatorService = simulatorService;
+        this.taskPlanService = taskPlanService;
     }
 
     // -------------------------------------------------------------------------
@@ -142,5 +145,93 @@ public class KafkaSimulatorController {
                 .body(new ErrorResponse(ex.getMessage()));
         }
     }
-}
 
+    // =========================================================================
+    // Task Plan Endpoints
+    // =========================================================================
+
+    @GetMapping(value = "/task-plans", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "List all saved task plans for the current user")
+    public ResponseEntity<?> listTaskPlans(
+        @RequestHeader(value = "X-User-Id") String userId) {
+
+        log.info("GET /api/simulator/kafka/task-plans [user={}]", userId);
+        try {
+            return ResponseEntity.ok(taskPlanService.listTaskPlans(userId));
+        } catch (Exception ex) {
+            log.error("Failed to list task plans", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Failed to list task plans: " + ex.getMessage()));
+        }
+    }
+
+    @PostMapping(value = "/task-plans",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Save or update a task plan")
+    public ResponseEntity<?> saveTaskPlan(
+        @RequestHeader(value = "X-User-Id") String userId,
+        @RequestBody SaveTaskPlanRequest request) {
+
+        log.info("POST /api/simulator/kafka/task-plans [user={}, planId={}, planName={}]",
+            userId, request != null ? request.getId() : null, request != null ? request.getName() : null);
+        try {
+            TaskPlanResponse response = taskPlanService.saveTaskPlan(userId, request);
+            return ResponseEntity.ok(new SaveTaskPlanResponse(response));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            log.error("Failed to save task plan", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Failed to save task plan: " + ex.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/task-plans/resolve", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Resolve and load a single task plan by id and/or name")
+    public ResponseEntity<?> resolveTaskPlan(
+        @RequestHeader(value = "X-User-Id") String userId,
+        @RequestParam(required = false) String id,
+        @RequestParam(required = false) String name) {
+
+        log.info("GET /api/simulator/kafka/task-plans/resolve [user={}, id={}, name={}]", userId, id, name);
+        try {
+            TaskPlanResponse response = taskPlanService.resolveTaskPlan(userId, id, name);
+            return ResponseEntity.ok(new ResolveTaskPlanResponse(response));
+        } catch (IllegalArgumentException ex) {
+            if (ex.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(ex.getMessage()));
+            }
+            return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            log.error("Failed to resolve task plan", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Failed to resolve task plan: " + ex.getMessage()));
+        }
+    }
+
+    @DeleteMapping(value = "/task-plans/resolve", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Delete a saved task plan by id and/or name")
+    public ResponseEntity<?> deleteTaskPlan(
+        @RequestHeader(value = "X-User-Id") String userId,
+        @RequestParam(required = false) String id,
+        @RequestParam(required = false) String name) {
+
+        log.info("DELETE /api/simulator/kafka/task-plans [user={}, id={}, name={}]", userId, id, name);
+        try {
+            taskPlanService.deleteTaskPlan(userId, id, name);
+            return ResponseEntity.ok(new DeleteResponse(true));
+        } catch (IllegalArgumentException ex) {
+            if (ex.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(ex.getMessage()));
+            }
+            return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            log.error("Failed to delete task plan", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Failed to delete task plan: " + ex.getMessage()));
+        }
+    }
+}

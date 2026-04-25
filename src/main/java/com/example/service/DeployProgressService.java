@@ -63,10 +63,17 @@ public class DeployProgressService {
      * produced before the browser registers the emitter are never lost, then
      * fires the async work.
      */
-    public String startDeployment(String productType, String source, String team, String configurationYaml, boolean isDeploy) {
+    public String startDeployment(String productType, String source, String team, String configurationYaml) {
         String runId = UUID.randomUUID().toString();
         eventBuffers.put(runId, new LinkedBlockingQueue<>());
         logger.info("Deployment started: runId={}, productType={}, source={}, team={}", runId, productType, source, team);
+        CompletableFuture.runAsync(() -> executeDeployment(configurationYaml, runId));
+        return runId;
+    }
+    public String upgradeDeployment(String productType, String source, String team, String configurationYaml) {
+        String runId = UUID.randomUUID().toString();
+        eventBuffers.put(runId, new LinkedBlockingQueue<>());
+        logger.info("Deployment upgraded: runId={}, productType={}, source={}, team={}", runId, productType, source, team);
         CompletableFuture.runAsync(() -> executeDeployment(configurationYaml, runId));
         return runId;
     }
@@ -89,6 +96,16 @@ public class DeployProgressService {
     public String deleteDeployment(String productType, String source, String team, String environment, boolean isPermanent) {
         String runId = UUID.randomUUID().toString();
         logger.info("Delete deployment: runId={}, productType={}, source={}, team={}, environment={}, isPermanent={}", runId, productType, source, team, environment, isPermanent);
+        // TODO: implement actual delete logic (remove pipeline registration, clean up resources, etc.)
+        return runId;
+    }
+    /**
+     * Deletes a deployment for the given productType/source/team/environment.
+     * Returns a run ID representing the delete operation.
+     */
+    public String restoreDeployment(String productType, String source, String team, String environment) {
+        String runId = UUID.randomUUID().toString();
+        logger.info("Delete deployment: runId={}, productType={}, source={}, team={}, environment={}, ", runId, productType, source, team, environment);
         // TODO: implement actual delete logic (remove pipeline registration, clean up resources, etc.)
         return runId;
     }

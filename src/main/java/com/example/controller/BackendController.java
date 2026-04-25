@@ -74,7 +74,7 @@ public class BackendController {
     }
 
     @GetMapping("/teamNames")
-    @Operation(summary = "Get supported team names - reads teamNams.txt from classpath")
+    @Operation(summary = "Get supported team names - reads teamNames.txt from classpath")
     public List<String> getTeamNames() {
         logger.info("Request arrived - GET /api/backend/teamNames");
         try {
@@ -86,86 +86,13 @@ public class BackendController {
         }
     }
 
-    @GetMapping("/deployments")
-    @Operation(summary = "Get deployments for a specific team or for all teams when teamName is omitted")
-    public List<Deployment> getDeployments(@RequestParam(required = false) String teamName) {
-        boolean allTeamsRequested = teamName == null || teamName.isBlank();
-        logger.info("Request arrived - GET /api/backend/deployments [teamName={}]",
-            allTeamsRequested ? "ALL" : teamName);
-        List<Deployment> response = allTeamsRequested
-            ? backendService.getAllDeployments()
-            : backendService.getDeployments(teamName);
-        logger.info("Response payload: {} deployments returned", response.size());
-        logger.debug("Response details: {}", response);
-        return response;
-    }
 
-    @GetMapping(value = "/backend/configuration/yaml", produces = {"application/json", "text/plain"})
-    @Operation(summary = "Get configuration YAML by productType, source, team and environment")
-    public ResponseEntity<String> getConfigurationYaml(
-            @RequestParam String productType,
-            @RequestParam String source,
-            @RequestParam String team,
-            @RequestParam String environment) {
-        logger.info("Request arrived - GET /api/backend/configuration/yaml [productType={}, source={}, team={}, environment={}]",
-            productType, source, team, environment);
-        try {
-            String yaml = backendService.getConfigurationYaml(productType, source, team, environment, false);
-            logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
-            return ResponseEntity.ok(yaml);
-        } catch (IllegalArgumentException ex) {
-            logger.error("Error occurred while getting configuration YAML", ex);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("eyal is here");
-        } catch (IllegalStateException ex) {
-            logger.error("Error occurred while getting configuration YAML", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("eyal is here");
-        }
-    }
 
-    @GetMapping(value = "/backend//configuration/draft/yaml", produces = {"application/json", "text/plain"})
-    @Operation(summary = "Get configuration YAML by productType, source, team and environment")
-    public ResponseEntity<String> getDraftConfigurationYaml(
-            @RequestParam String productType,
-            @RequestParam String source,
-            @RequestParam String team,
-            @RequestParam String environment) {
-        logger.info("Request arrived - GET /api/backend/configuration/draft/yaml [productType={}, source={}, team={}, environment={}]",
-            productType, source, team, environment);
-        try {
-            String yaml = backendService.getConfigurationYaml(productType, source, team, environment,true);
-            logger.info("Response payload: YAML content returned ({} chars)", yaml.length());
-            return ResponseEntity.ok(yaml);
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-        } catch (IllegalStateException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
-        }
-    }
 
-    @PostMapping(value = "/configuration/yaml", consumes = {"text/plain", "application/x-yaml", "application/json", "application/octet-stream"})
-    @Operation(summary = "Save configuration from YAML string. File is saved under deploymentConfig/<productType>_<source>_<team>_<environment>.yml")
-    public ResponseEntity<String> saveConfigurationYaml(
-            @RequestParam String productType,
-            @RequestParam String source,
-            @RequestParam String team,
-            @RequestParam String environment,
-            @RequestBody String configurationYaml) {
-        logger.info("Request arrived - POST /api/backend/configuration/yaml [productType={}, source={}, team={}, environment={}]",
-            productType, source, team, environment);
-        try {
-            backendService.saveConfigurationYaml(productType, source, team, environment, configurationYaml);
-            return ResponseEntity.ok("ok");
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body("error: " + ex.getMessage());
-        } catch (IllegalStateException ex) {
-            return ResponseEntity.internalServerError().body("error: " + ex.getMessage());
-        }
-    }
-
-    @GetMapping(value = "/schema/entity/{entityName}", produces = {"application/json"})
+    @GetMapping(value = "/genome/schema/{entityName}", produces = {"application/json"})
     @Operation(summary = "Get schema by entity name - reads <entityName>.json from classpath and returns it")
     public ResponseEntity<String> getSchemaByEntityName(@PathVariable String entityName) {
-        logger.info("Request arrived - GET /api/backend/schema/entity/{}", entityName);
+        logger.info("Request arrived - GET /api/genome/schema/{}", entityName);
         try {
             String schema = backendService.getSchemaByName(entityName);
             logger.info("Response payload: schema '{}' returned ({} chars)", entityName, schema.length());
